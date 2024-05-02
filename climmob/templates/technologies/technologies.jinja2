@@ -1,0 +1,651 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Technology options library") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','icheck' %}
+    {% cssresource request,'coreresources','datatables' %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','footable' %}
+    {% cssresource request,'coreresources','tour' %}
+    {% cssresource request,'coreresources','select2' %}
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','footable' %}
+    {% jsresource request,'coreresources','icheck' %}
+    {% jsresource request,'coreresources','technologies' %}
+    {% jsresource request,'coreresources','datatables' %}
+    {% jsresource request,'coreresources','sweet' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','tour' %}
+    {% jsresource request,'coreresources','select2' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set iconOfLibrary="fa-flask" %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/select-technology-options/" %}
+    {% set _title= _("Technologies") %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+    <div class="row">
+
+        <div class="col-md-4">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("Technologies available") }}</h5>
+                    <div class="ibox-tools">
+                        {% if nextPage %}
+                            <a class="btn btn-success btn-rounded  btn-xs" style="color: white" href="{{ nextPage }}"><i class="fa fa-reply"></i> {{ _('Back to assign technologies to the project') }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    {% set  error_summary_aux = error_summary %}
+                    {% set error_summary=error_summary_add %}
+                    {% include 'snippets/error.jinja2' %}
+
+                    <div class="text-center">
+                        <p>{{ _("Click on the row in the table to see the technology options of the technology") }}</p>
+                        <a class="btn btn-success btn-rounded  btn-xs" style="color: white" onclick="showHelp()"><i class="fa fa-question-circle"></i> {{  _("Show help") }}</a>
+                    </div>
+
+                    <input type="text" class="form-control form-control-sm m-b-xs" id="filter" placeholder="{{ _("Search technology") }}">
+                    <div class="activity-stream" style="overflow-y: scroll; max-height: calc(100vh - 380px);">
+                        <table class="footable table table-stripped tableHover" data-page-size="50000" data-filter=#filter>
+                            <thead>
+                                <tr>
+                                    <th >{{ _("Technology")}}</th>
+                                    <th style="text-align: center" data-type="numeric">{{  _("Number of options") }}</th>
+{#                                    <th></th>#}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set resUserTechs = UserTechs %}
+                                {% set color="#000000"%}
+                                {% set UserTechs=ClimMobTechs %}
+                                {% set yourLib=False %}
+                                {% set showCreator=True %}
+                                {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                {% if activeUser.login != "bioversity" %}
+                                    {% set color="#1ab394" %}
+                                    {% set UserTechs=resUserTechs  %}
+                                    {% set yourLib=True %}
+                                    {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="stream" style="padding: 4px 0" onclick="showCreateTechnology()">
+                        <div class="stream-badge">
+                            <i class="fa fa-plus" style="color:#000000"></i>
+                        </div>
+                        <div class="stream-panel" style="margin-top: 4px">
+                            <div class="stream-info">
+                                <button class="btn btn-primary btn-xs" style="font-size: 12px; background-color: #3c763d; border-color: #3c763d; font-weight: 600">{{ _("Create new technology") }}</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4" id="div_create_technology" style="display: none" >
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("Technology details") }}</h5>
+                    <div class="ibox-tools">
+                        <button id="btn_cancel_technology"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-close"></i> {{ _("Clear and close form") }} </button>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    {% set error_summary = error_summary_aux %}
+                    {% include 'snippets/error.jinja2' %}
+
+                    <form class="form-horizontal formElement" id="form_technology" role="form" method="post" action="{{ request.url }}">
+                        {% include 'snippets/technologies/technologies-form.jinja2' %}
+
+                        <button style="display: none" class="btn btn-danger pull-left BtnTechnology" id="btn_delete_technology" onclick="deleteTechnology()" type="button" title="{{ _("Delete technology") }}"><i class="fa fa-trash"></i> {{ _("Delete technology") }}</button>
+                        <button style="display: none" class="btn btn-primary pull-right BtnTechnology" type="submit" id="btn_add_technology" name="btn_add_technology" > {{ _('Add and close') }}</button>
+                        <button style="display: none" class="btn btn-primary pull-right BtnTechnology" type="submit" id="btn_modify_technology" name="btn_modify_technology" > {{ _('Save and close') }}</button>
+                    </form>
+                    <br>
+                    <br>
+                    <hr>
+                    <h4>{{ _("List of technology options:") }}</h4>
+                    <div class="activity-stream" id="div_show_alias" style="overflow-y: scroll; max-height: calc(100vh - 495px);">
+
+                    </div>
+                    <div class='stream' style='padding:4px 0; display: none' onclick='showCreateAlias()' id="div_show_create_alias">
+                        <div class='stream-badge'>
+                            <i class='fa fa-plus' style='color:#000000'></i>
+                        </div>
+                        <div class='stream-panel' style='margin-top:4px'>
+                            <div class='stream-info'>
+                                <button class="btn btn-primary btn-xs" style="font-size: 12px; background-color: #3c763d; border-color: #3c763d; font-weight: 600">{{ _("Create new technology option") }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4" id="div_create_technology_option" style="display: none" >
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("Technology options details") }}</h5>
+                    <div class="ibox-tools">
+                        <button id="btn_cancel_technology_options"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-close"></i> {{ _("Clear and close form") }} </button>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    {% set error_summary=error_summary_options %}
+                    {% include 'snippets/error.jinja2' %}
+
+                    <form class="form-horizontal formElement" id="form_technology_options" role="form" method="post" action="{{ request.url }}">
+                        <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                        <input type="text" class="form-control tech_id" value="{{ dataworking.tech_id }}" name="tech_id" style="display: none">
+                        <input type="text" class="form-control " value="{{ dataworking.alias_id }}" id="alias_id" name="alias_id" style="display: none">
+
+                        <div class="sectionOption" id="div_create_option" style="display: none">
+                            <div class="row text-center">
+                                <p>{{ _("Write each technology option on separate lines.") }}</p>
+                                <textarea rows="10" style="width: 90%"  id="alias_name_insert" name="alias_name_insert" required="" oninvalid="this.setCustomValidity('{{ _("Write the technology option name.") }}')" onchange="this.setCustomValidity('')">{{ dataworking.alias_name_insert }}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="sectionOption" id="div_update_option" style="display: none">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{ _('Name:') }}</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" value="{{ dataworking.alias_name }}" id="alias_name" name="alias_name" placeholder=" " required="" oninvalid="this.setCustomValidity('{{ _("Write the technology option name.") }}')" onchange="this.setCustomValidity('')">
+                                </div>
+                            </div>
+                        </div>
+
+                        <br>
+                        <button style="display: none" class="btn btn-danger pull-left BtnTechnologyOptions" id="btn_delete_technology_option" onclick="deleteTechnologyOption()" type="button" title="{{ _("Delete option") }}"><i class="fa fa-trash"></i> {{ _("Delete option") }}</button>
+                        <input style="display: none" class="btn btn-primary pull-right BtnTechnologyOptions" type="submit" id="btn_add_alias" name="btn_add_alias" value="{{ _('Add and close') }}"></input>
+                        <input style="display: none" class="btn btn-primary pull-right BtnTechnologyOptions" type="submit" id="btn_modify_alias" name="btn_modify_alias" value="{{ _('Save and close') }}"></input>
+                    </form>
+                    <br>
+                    <br>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{#    <div class="modal inmodal" id="CropModal" tabindex="-1" role="dialog" aria-hidden="true">#}
+{#        <div id="CropParent" style="position: absolute; z-index: 10000">#}
+{#        </div>#}
+{#        <div class="modal-dialog modal-sm">#}
+{#            <div class="modal-content animated bounceInRight">#}
+{#                <div class="modal-header">#}
+{#                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">{{ _('Close') }}</span></button>#}
+{#                    <i class="fa fa-leaf modal-icon"></i>#}
+{#                    <h4 class="modal-title">{{ _('Select a crop') }}</h4>#}
+{#                    <small class="font-bold">{{ _('If this technology is a crop, please select the crop') }}.</small>#}
+{#                </div>#}
+{#                <div class="modal-body">#}
+{#                    <form>#}
+{#                        <div class="form-group">#}
+{#                            <label>{{ _('Crop') }}</label>#}
+{#                            <select id="select_crop" name="croptaxonomy_code" style="width: 100%; !important;" class="form-control"></select>#}
+{#                        </div>#}
+{#                    </form>#}
+{#                </div>#}
+{#                <div class="modal-footer">#}
+{#                    <button type="button" class="btn btn-white" data-dismiss="modal">{{ _('Cancel') }}</button>#}
+{#                    <button id="set_crop" type="button" data-dismiss="modal" class="btn btn-primary">{{ _('Set crop') }}</button>#}
+{#                </div>#}
+{##}
+{#            </div>#}
+{#        </div>#}
+{#    </div>#}
+
+    <style>
+
+        .tableHover tbody tr:hover
+        {
+            background-color: #1ab394;
+            color: black;
+        }
+
+        .tableHover tbody tr:hover td  p
+        {
+            color: white !important;
+        }
+
+        .tableHover2
+        {
+            background-color: #1ab394;
+            color: white;
+        }
+
+        .tableHover2 td p
+        {
+            color: white !important;
+        }
+    </style>
+
+    <script>
+        let show_carga = true;
+        $(document).on('ifChecked', '.i-checkTech', function(event) {
+            id = $(this).attr("id")
+            $("#tech"+id.replace("radio","")).click()
+        });
+
+        $('.footable').on('click', 'tbody tr', function(event) {
+            $(this).addClass('tableHover2').siblings().removeClass('tableHover2');
+        });
+
+        $(document).ready(function () {
+
+
+            function formatCrop (crop) {
+                if (!crop.id) {
+                    return crop.text;
+                }
+                let $state = $(
+                    '<span>' + crop.text + '</span>'
+                );
+                return $state;
+            }
+
+
+            $("#select_crop").select2({
+
+                templateResult: formatCrop,
+                {#dropdownParent: $('#CropParent'),#}
+                ajax: {
+                    url: "{{ request.route_url('APICrops') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        return {
+                            q: params.term, // search term
+                            page: params.page
+                        };
+                    },
+                    processResults: function (data, params) {
+                        params.page = params.page || 1;
+                        return {
+                            results: data.results,
+                            pagination: {
+                                more: (params.page * 10) < data.total
+                            }
+                        };
+                    },
+                    cache: true
+                }
+            });
+
+            /*$( "#show_crops" ).on( "click", function() {
+                show_carga = false;
+                $('#select_crop').val(null).trigger('change');
+            });
+
+            $( "#set_crop" ).on( "click", function() {
+                let selected = $('#select_crop').find(':selected')
+                if (typeof selected.val() !== 'undefined') {
+                    $("#croptaxonomy_code").val(selected.val());
+                    $('#crop_label').html('');
+                    $('#crop_label').append(selected.text());
+                    if($("#tech_id").val() != "") {
+                        $("#btn_modify_technology").css('display', 'initial');
+                    }
+                } else {
+                    alert('{{ _('You did not select a crop') }}');
+                }
+                show_carga = true;
+            } );*/
+
+            $('.footable').footable();
+
+            $('.i-checks-Black').iCheck({
+                radioClass: 'iradio_square-black',
+            });
+
+            $('.i-checks-Green').iCheck({
+                radioClass: 'iradio_square-green',
+            });
+
+            /*$('.i-checkTech').on('ifChanged', function()
+            {
+                id = $(this).attr("id")
+                $("#tech"+id.replace("radio","")).click()
+            });*/
+
+            $('.i-checkOption').on('ifChanged', function()
+            {
+                id = $(this).attr("id")
+                $("#option"+id.replace("radio","")).click()
+            });
+
+            {% if techSee %}
+                showVarietiesInTechnology("{{ techSee.tech_id }}","{{ techSee.user_name }}", closeError='no')
+                {% if error_summary_options %}
+                    {% if "btn_add_alias" in dataworking %}
+                        $("#alias_name").prop('required',false);
+                        $("#div_create_option").css('display','initial')
+                        $("#btn_add_alias").css('display','initial')
+                    {% else %}
+                        $("#radioOption{{dataworking.alias_id}}").iCheck('check');
+                        $("#alias_name_insert").prop('required',false);
+                        $("#div_update_option").css('display','initial')
+                        $("#btn_delete_technology_option").css('display','initial')
+                        $("#btn_modify_alias").css('display','initial')
+                    {% endif %}
+
+                    $("#div_create_technology_option").css('display','initial')
+                {% endif%}
+            {% else %}
+                {% if error_summary_aux %}
+                    $("#btn_add_technology").css('display','initial')
+                    $("#div_create_technology").css('display','initial')
+                {% endif%}
+            {% endif %}
+        });
+
+
+
+        function showCreateTechnology() {
+            cleanBtsTechnologyOptions()
+            cleanSectionsOptions()
+            cleanBtsTechnology()
+            $("#div_show_alias").html("")
+            $("#btn_add_technology").css('display','initial')
+            $("#tech_name").prop('readonly',false)
+            $("#tech_name").val("")
+            $(".tech_id").val("")
+
+            /*$("#croptaxonomy_code").val('0');
+            $('#crop_label').html('');
+            $('#crop_label').append("Not a crop");*/
+            $("#select_crop").prop('disabled', false);
+            /*$("#select_crop").append($('<option>').val("0").text("Not a crop"));
+            $("#select_crop").val("0");
+            $("#select_crop").trigger('change');*/
+
+            $("#div_create_technology").css('display','initial')
+            $("#div_create_technology_option").css('display','none')
+            $("#div_show_create_alias").css('display','none')
+
+            if ($('.closeError').length) {
+                $(".closeError").click()
+            }
+        }
+
+        $("#btn_cancel_technology").click(function () {
+            $('.i-checkTech').iCheck('uncheck');
+            $("#btn_cancel_technology_options").click()
+            $("#div_create_technology").css('display','none')
+            $("#div_show_create_alias").css('display','none')
+            $('.footable tbody tr').siblings().removeClass('tableHover2');
+        });
+
+        $("#btn_cancel_technology_options").click(function(){
+            $('.i-checkOption').iCheck('uncheck');
+            $("#div_create_technology_option").css('display','none')
+            $("#alias_name_insert").val("")
+        });
+
+        function showVarietiesInTechnology(tech_id, user_name, closeError='yes') {
+
+            $("#div_show_create_alias").css("display","none");
+
+            var URL= "{{ request.route_url('getUserTechnologyDetails',user="__user_name__", technologyid="__techid__") }}"
+            URL= URL.replace("__user_name__",user_name).replace("__techid__", tech_id)
+            data = {};
+
+            $.get(URL, function(data, status){
+                var tech = data;
+
+
+                $("#tech"+tech.tech_id).addClass('tableHover2');
+                if (!$("#radio"+tech.tech_id).prop('checked')) {
+                    $("#radio"+tech.tech_id).iCheck('check');
+                }
+
+                if(closeError == 'yes')
+                {
+                    if ($('.closeError').length) {
+                        $(".closeError").click()
+                    }
+
+                    $("#div_create_technology_option").css("display","none")
+                }
+
+                cleanBtsTechnology()
+                $(".tech_id").val(tech.tech_id)
+                $("#tech_name").val(tech.tech_name)
+
+                /*$("#croptaxonomy_code").val(tech.croptaxonomy_code);
+                $('#crop_label').html('');
+                $('#crop_label').append(tech.taxonomy_name);*/
+                $('#select_crop').empty()
+                $("#select_crop").append($('<option>').val(tech.croptaxonomy_code).text(tech.taxonomy_name));
+                $("#select_crop").val(tech.croptaxonomy_code);
+                $("#select_crop").trigger('change');
+
+                allHTML = ""
+                for(var i=0; i<tech.tech_alias.length; i++)
+                {
+                    var arrayForAlias = JSON.stringify(tech.tech_alias[i]).replace(/(')/g, "\\u0027");
+                    if(tech.tech_alias[i].quantity == 0 & tech.user_name == "{{ activeUser.login }}"){
+                        allHTML +="<div class='stream' style='padding:4px 0' onclick='showAlias(\""+tech.user_name+"\",\""+tech.tech_id+"\",\""+tech.tech_alias[i].alias_id+"\")' id='option"+tech.tech_alias[i].alias_id+"'>"
+                        allHTML +="<div class='stream-badge'>"
+                        /*allHTML +="<i class='fa fa-thumb-tack' style='color:#1ab394'></i>"*/
+                        /*allHTML +="<i class='fa fa-thumb-tack' style='color:#1ab394'></i>"*/
+                        allHTML +="<i style='border-color:#1ab394; padding: initial;'><input type='radio' class='i-checkOption i-checks-Green1' name='technologyoptions' id='radioOption"+tech.tech_alias[i].alias_id+"'></i>"
+                    }else{
+                        allHTML +="<div class='stream' style='padding:4px 0' >"
+                        allHTML +="<div class='stream-badge'>"
+                        /*allHTML +="<i class='fa fa-thumb-tack' style='color:#000000'></i>"*/
+                        //allHTML +="<i style='border-color:#000000; padding: initial;'><input type='radio' class='i-checkOption i-checks-Black1' disabled='' name='technologyoptions' id='radioOption"+tech.tech_alias[i].alias_id+"'></i>"
+                    }
+                    allHTML +="</div>"
+                    allHTML +="<div class='stream-panel' style='margin-top:4px'>"
+                    allHTML +="<div class='stream-info'>"
+                    allHTML +="<p style='font-size:14px; margin:initial'>"+tech.tech_alias[i].alias_name+"</p>"
+                    allHTML +="</div>"
+                    allHTML +="</div>"
+                    allHTML +="</div>"
+                }
+                if(tech.user_name == "{{ activeUser.login }}"){
+                    {#allHTML +="<div class='stream' style='padding:4px 0' onclick='showCreateAlias()'>"#}
+                    {#allHTML +="<div class='stream-badge'>"#}
+                    {#allHTML +="<i class='fa fa-plus' style='color:#000000'></i>"#}
+                    {#allHTML +="</div>"#}
+                    {#allHTML +="<div class='stream-panel' style='margin-top:4px'>"#}
+                    {#allHTML +="<div class='stream-info'>"#}
+                    {#allHTML +="<strong class='label label-primary' style='font-size: 12px; background-color: #3c763d'>{{ _("Create new technology option") }}</strong>"#}
+                    {#allHTML +="</div>"#}
+                    {#allHTML +="</div>"#}
+                    {#allHTML +="</div>"#}
+                    $("#div_show_create_alias").css("display","block");
+                }
+
+                $("#div_show_alias").html(allHTML)
+
+                $('.i-checks-Black1').iCheck({
+                    radioClass: 'iradio_square-black',
+                });
+
+                $('.i-checks-Green1').iCheck({
+                    radioClass: 'iradio_square-green',
+                });
+
+                $(document).on('ifChecked', '.i-checkOption', function(event) {
+                    id = $(this).attr("id")
+                    $("#option"+id.replace("radioOption","")).click()
+                });
+
+                if(tech.found == 0 & tech.user_name == "{{ activeUser.login }}"){
+                    //$("#btn_modify_technology").css('display','initial')
+                    $("#btn_delete_technology").css('display','initial');
+                    $("#tech_name").prop('readonly',false);
+                    $("#select_crop").prop('disabled', '');
+                    /*$("#show_crops").prop('disabled', false);
+                    $("#show_crops").addClass('btn-success');
+                    $("#show_crops").removeClass('btn-default');*/
+                }else{
+                    $("#tech_name").prop('readonly',true)
+                    $("#select_crop").prop('disabled', 'disabled');
+                    /*$("#show_crops").prop('disabled', true);
+                    $("#show_crops").removeClass('btn-success');
+                    $("#show_crops").addClass('btn-default');*/
+                }
+
+                $("#div_create_technology").css('display','initial')
+                $("#div_show_alias").css('display','block')
+
+            });
+        }
+
+        function showCreateAlias(){
+            $("#alias_name").prop('required',false);
+            $("#alias_name_insert").prop('required',true);
+            if ($('.closeError').length) {
+                $(".closeError").click()
+            }
+
+            cleanBtsTechnologyOptions()
+            cleanSectionsOptions()
+            $("#btn_add_alias").css('display','block')
+            $("#div_create_option").css('display','block')
+            $("#div_create_technology_option").css("display","initial")
+
+            if ($('.closeError').length) {
+                $(".closeError").click()
+            }
+        }
+
+        var changeError=0
+        function showAlias(user_name, tech_id, alias_id)
+        {
+            var URL= "{{ request.route_url('getUserTechnologyAliasDetails',user="__user_name__", technologyid="__techid__", aliasid="__aliasid__") }}"
+            URL= URL.replace("__user_name__",user_name).replace("__techid__", tech_id).replace("__aliasid__", alias_id)
+
+            $.get(URL, function(data, status){
+                var alias = data;
+                console.log(alias)
+                $("#option"+alias.alias_id).iCheck('check');
+                {% if not error_summary_options %}
+                    if ($('.closeError').length) {
+                        $(".closeError").click()
+                    }
+                {% else %}
+                    if (changeError > 0)
+                    {
+                        if ($('.closeError').length) {
+                            $(".closeError").click()
+                        }
+                    }
+                    changeError =changeError + 1
+                {% endif %}
+
+                $("#alias_name").prop('required',true);
+                $("#alias_name_insert").prop('required',false);
+                cleanSectionsOptions()
+                cleanBtsTechnologyOptions()
+                $("#alias_name").val(alias.alias_name)
+                $("#alias_id").val(alias.alias_id)
+                $("#btn_delete_technology_option").css('display','initial')
+                $("#btn_modify_alias").css('display','initial')
+                $("#div_update_option").css('display','initial')
+                $("#div_create_technology_option").css('display','initial')
+                $("#alias_name").focus();
+            });
+        }
+
+        function deleteTechnology() {
+            var urlAction= "{{ request.application_url }}/technology/"+$("#tech_id").val()+"/delete"
+            showDelete(urlAction,'{{ _("Do you really want to delete this technology?") }}','{{ request.session.get_csrf_token() }}')
+        }
+
+        function deleteTechnologyOption()
+        {
+            var urlAction= "{{ request.application_url }}/technology/"+$("#tech_id").val()+"/alias/"+$("#alias_id").val()+"/delete"
+            showDelete(urlAction,'{{ _("Do you really want to delete this technology option?") }}','{{ request.session.get_csrf_token() }}','noRedirectAndAction')
+
+        }
+
+        function myCustomAction(){
+            $("#form_technology_options").submit()
+        }
+
+        function cleanBtsTechnology() {
+            $(".BtnTechnology").css('display','none')
+        }
+
+        function cleanBtsTechnologyOptions() {
+            $(".BtnTechnologyOptions").css('display','none')
+
+            /*if ($('.closeError').length) {
+                $(".closeError").click()
+            }*/
+        }
+
+        function cleanSectionsOptions(){
+            $(".sectionOption").css('display','none');
+            $("#alias_name_insert").val("")
+            $("#alias_name").val("")
+            $("#alias_id").val("")
+        }
+
+        $("#form_technology_options").bind("keypress", function(e) {
+
+            if (e.target.localName == "input")
+            {
+                if (e.keyCode == 13) {
+                    toastr.error("{{ _("Please click the button.") }}");
+                    return false;
+                }
+            }
+        });
+
+        $("#form_technology").bind("keypress", function(e) {
+
+            if($("#tech_id").val() != "")
+            {
+                $("#btn_modify_technology").css('display','initial')
+            }
+            if (e.keyCode == 13) {
+                toastr.error("{{ _("Please click the button.") }}");
+                return false;
+            }
+        });
+
+        function showHelp()
+        {
+            var tour = new Tour({
+                steps: [
+                        {
+                            element: "#div_for_help",
+                            title: "{{ _("Creating technology and technology options in the library") }}",
+                            content: "<p><b>1</b>. {{ _("Click on the row in the table to see the technology options of the technology") }}.</p><p><b>*</b>{{ _("If the technology has been created by you, you will be able to perform actions (Modify/Delete/Add technology options) as long as the technology has not been added to a project, in that case you will only be able to add more technology options.") }}.</p><p><b>*</b> {{ _("If the technology belongs to the ClimMob user, you will not be able to perform any action other than viewing the registered technology options") }}.</p><br><img src='{{ request.url_for_static('gif/library_technologies.gif') }}'/>",
+                            placement: "bottom"
+                        }
+                       ],
+                template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:1045px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+                backdrop: true,
+                backdropContainer: 'body'
+            });
+
+            // Initialize the tour
+            tour.init();
+            tour.restart();
+        }
+
+    </script>
+
+    {% include 'snippets/loading.jinja2' %}
+
+{% endblock pagecontent %}

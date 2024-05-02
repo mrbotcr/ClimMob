@@ -1,0 +1,358 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob - Select technology options") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','icheck' %}
+    {% cssresource request,'coreresources','footable' %}
+    {% cssresource request,'coreresources','tour' %}
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','footable' %}
+    {% jsresource request,'coreresources','icheck' %}
+    {% jsresource request,'coreresources','prjtechnologies' %}
+    {% jsresource request,'coreresources','tour' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set _title= _("Assign technologies") %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/select-technology-options/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+
+    <div class="row" style="text-align: center">
+        <div class="col-lg-12">
+            <div class="ibox-content" style="padding: 10px">
+                <p style="margin: 0px">
+                    {{ _("Here you can specify the technology options you want to compare in your tricot experiment. We recommend you select a pool of 7 to 20 technology options. Technologies can be crops or fertilizer, and options are different varieties or types.") }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% set onlySee = False %}
+
+    {% if activeProject["access_type"] in [4] or activeProject["project_regstatus"] > 0 %}
+        {% set onlySee = True %}
+    {% endif %}
+
+    <div class="row">
+
+        <div class="col-lg-4 " >
+            <div class="ibox float-e-margins" >
+                <div class="ibox-title">
+                    <h5>{{ _("Assign technology and technology options") }}</h5>
+                    <div class="ibox-tools">
+                        {% if not onlySee %}<a class="btn btn-success btn-rounded  btn-xs" style="color: white" href="{{ request.route_url('usertechnologies',_query={'next': request.url}) }}"><i class="fa fa-plus-square"></i> {{  _("Add new technology") }}</a> {% endif %}
+                    </div>
+                </div>
+                <div class="ibox-content" >
+                    {% set auxError = error_summary %}
+                    {% set error_summary = error_summary2 %}
+                    {% include 'snippets/error.jinja2' %}
+                    {% set error_summary = auxError %}
+
+                    <div class="text-center">
+                        <p>{{ _("Click on the row in the table to see the technology options of the technology") }}</p>
+                        <a class="btn btn-success btn-rounded  btn-xs" style="color: white" onclick="showHelp()"><i class="fa fa-question-circle"></i> {{  _("Show help") }}</a>
+                    </div>
+
+                    <input type="text" class="form-control form-control-sm m-b-xs" id="filter" placeholder="{{ _("Search technology") }}">
+                    <div class="activity-stream" style="overflow-x: hidden; overflow-y: scroll; max-height: calc(100vh - 310px);">
+
+                        <table class="footable  table table-stripped tableHover" data-page-size="50000" data-filter=#filter>
+                            <thead>
+                                <tr>
+                                    <th >{{ _("Technology")}}</th>
+                                    <th style="text-align: center" data-type="numeric">{{  _("Available in the library") }}</th>
+                                    <th style="text-align: center" data-type="numeric"> {{ _("Selected for the project") }}</th>
+{#                                    <th></th>#}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set UserTechs=TechnologiesInProject %}
+                                {% set checkbox=True %}
+                                {% set checked=True %}
+                                {% set color="#000000" %}
+                                {% set showBold=True %}
+                                {% set showCreator=True %}
+                                {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                {% if onlySee == False %}
+                                    {% set UserTechs=TechnologiesUser %}
+                                    {% set checkbox=True %}
+                                    {% set checked=False %}
+                                    {% set color="#000000" %}
+                                    {% set showBold=False %}
+                                    {% set showCreator=True %}
+                                    {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                {% endif %}
+                                <tr style="{% if totalOfCombinations > 50 %}color: red{% endif %}">
+                                    <th colspan="2" >{{ _("Total of combinations") }}</th>
+                                    <th class="text-center">{{ totalOfCombinations }}</th>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <form class="form-horizontal formElement" role="form" method="post" action="{{ request.path }}">
+                            <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                            <input type="text" id="txt_technologies_included" name="txt_technologies_included" style="width: 100%;display:none">
+                            <input type="text" id="txt_technologies_excluded" name="txt_technologies_excluded" style="width: 100%; display:none">
+                            <div class="row" style="padding-top: 10px; height: 50px">
+                                <div class="col-md-12">
+    {#                                <button class="btn btn-primary pull-right clm-actions" name="btn_save_technologies" type="submit" id="btn_save_technologies"><i class="fa fa-check"></i>&nbsp;{{ _("Save changes") }}</button>#}
+
+                                </div>
+                            </div>
+                        </form>
+                        <form class="form-horizontal formElement" role="form" method="post" action="{{ request.path }}" style="display:none">
+                            <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                            <input type="text" class="tech_id" name="tech_id" style="width: 100%;display:none">
+                            <div class="row" style="padding-top: 10px; height: 50px">
+                                <div class="col-md-12">
+                                    <button class="btn btn-primary pull-right clm-actions" style="display:none" name="btn_show_technology_alias" type="submit" id="btn_show_technology_alias"><i class="fa fa-check"></i>&nbsp;{{ _("Show technologies") }}</button>
+                                    <button class="btn btn-primary pull-right clm-actions" style="display:none" name="btn_show_technology_alias_in_library" type="submit" id="btn_show_technology_alias_in_library"><i class="fa fa-check"></i>&nbsp;{{ _("Show technologies") }}</button>
+
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if alias %}
+
+            <div class="col-lg-4 " id="alias_in_project">
+                <div class="ibox float-e-margins" >
+                    <div class="ibox-title">
+                        <div id="title_for_options"><h5>{{ _("Technology options for") }}: {{ techSee.tech_name }}</h5></div>
+                        <div class="ibox-tools">
+                            <button   class="btn btn-xs btn-default pull-right btn_cancel_technology_options" ><i class="fa fa-close"></i> {{ _("Close selection") }} </button>
+                        </div>
+                    </div>
+                    <div class="ibox-content animated fadeInRightBig" >
+                        <p><b>{{ _("Select to add") }}</b></p>
+                        <div style="overflow-x: hidden; overflow-y: scroll; max-height: calc(100vh - {% if onlySee == False %}385{% else %}310{% endif %}px);">
+                            <table class="footable table table-stripped" data-page-size="50000">
+
+                                <tbody>
+
+                                    {% set UserTechs=alias.AliasTechnologyInProject %}
+                                    {% set checkbox=True %}
+                                    {% set checked=True %}
+                                    {% set isAlias=True %}
+                                    {% set showCreator=False %}
+                                    {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                    {% set UserTechs=alias.AliasExtraTechnologyInProject %}
+                                    {% set extra=True %}
+                                    {% set checkbox=True %}
+                                    {% set checked=True %}
+                                    {% set isAlias=True %}
+                                    {% include 'snippets/technologies/technologies-stream.jinja2' %}
+
+                                    {% if onlySee == False %}
+                                        {% set UserTechs=alias.AliasTechnology %}
+                                        {% set checkbox=True %}
+                                        {% set checked=False %}
+                                        {% set isAlias=True %}
+                                        {% set extra=False %}
+                                        {% include 'snippets/technologies/technologies-stream.jinja2' %}
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if not onlySee %}
+                            <div class="stream" style="padding: 4px 0" onclick="showCreateTechnology()">
+                                <div class="stream-badge">
+                                    <i class="fa fa-plus" style="color:#000000"></i>
+                                </div>
+                                <div class="stream-panel" style="margin-top: 4px">
+                                    <div class="stream-info">
+                                        <strong class="label label-primary" style="font-size: 12px; background-color: #3c763d">{{ _("Create new technology option") }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form class="form-horizontal formElement" role="form" method="post" action="{{ request.path }}">
+                                <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                                <input type="text" class="tech_id" name="tech_id" style="width: 100%;display:none" value="{{ tech_id }}">
+                                <input type="text" id="txt_technologies_alias_included" name="txt_technologies_included" style="width: 100%;display:none">
+                                <input type="text" id="txt_technologies_alias_excluded" name="txt_technologies_excluded" style="width: 100%; display:none">
+                                <div class="row" style="padding-top: 10px; height: 50px">
+                                    <div class="col-md-12">
+                                        <button class="btn btn-primary pull-right clm-actions" name="btn_save_technologies_alias" type="submit" id="btn_save_technologies_alias">{{ _("Save") }}</button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 " id="create_new_alias" {% if not error_summary%}style="display:none" {% endif %}>
+                <div class="ibox float-e-margins" >
+                    <div class="ibox-title">
+                        <h5>{{ _("New technology option details") }}</h5>
+                        <div class="ibox-tools">
+                            <button   class="btn btn-xs btn-default pull-right btn_cancel_technology_options" ><i class="fa fa-close"></i> {{ _("Clear and close form") }}</button>
+                        </div>
+                    </div>
+                    <div class="ibox-content animated fadeInRightBig" >
+
+                        {% include 'snippets/error.jinja2' %}
+                        <p style="font-size: 14px">{{ _("Create an new technology option just for this project") }}</p>
+                        <br>
+                        <div class="error-desc">
+                            <form class="form-horizontal formElement" method="post" action="{{ request.path }}">
+                                <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                                <div class="form-group">
+                                    <label class="col-sm-4 control-label">{{ _('Name:') }}</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="tech_id" name="tech_id" style="width: 100%;display:none" value="{{ tech_id }}">
+                                        <input type="text" class="form-control" value="{{ dataworking.alias_name }}" id="txt_add_alias" name="txt_add_alias" placeholder=" " required="" oninvalid="this.setCustomValidity('{{ _("Write the technology option name.") }}')" onchange="this.setCustomValidity('')">
+                                    </div>
+                                </div>
+                                <button type="submit" name="btn_add_alias" class="btn btn-primary pull-right">{{ _("Add") }}</button>
+                                <br><br>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+
+        {% if combinations %}
+            <div class="col-lg-4 " id="create_new_alias">
+                <div class="ibox float-e-margins" >
+                    <div class="ibox-title">
+                        <h5>{{ _("Detail of the technology options tested for the project") }}</h5>
+                    </div>
+                    <div class="ibox-content animated fadeInRightBig" >
+                        <div style="overflow-y: scroll; max-height: calc(100vh - 310px);">
+                            <table class="TableOfReference table table-bordered" >
+                                <tr>
+                                    <th style="text-align: center; vertical-align: middle">{{ _("Technology option") }}</th>
+                                    <th style="text-align: center; width: 35%">{{ _("Number of times each technology option is tested") }}</th>
+                                </tr>
+                                {% for combination in combinations %}
+                                    <tr>
+                                        <td>
+                                            {% for element in combination.elements %}
+                                                {{ element.technology_name }}: {{ element.alias_name }}
+                                                <br>
+                                            {% endfor %}
+                                        </td>
+                                        <td style="text-align: center; vertical-align: middle">
+                                            {{ combination.number_of_times_used }}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+
+    <style>
+
+        .tableHover tbody tr:hover
+        {
+            background-color: #1ab394;
+            color: black;
+            cursor: pointer;
+        }
+
+        .tableHover tbody tr:hover td  p
+        {
+            color: white !important;
+        }
+
+        .tableHover2
+        {
+            background-color: #1ab394;
+            color: white;
+        }
+
+        .tableHover2 td p
+        {
+            color: white !important;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            $('.footable').footable();
+            if ("{{ tech_id }}" !="")
+            {
+                $("#tech{{ tech_id }}").addClass("tableHover2");
+            }
+        });
+
+        $('.tableHover').on('click', 'tbody tr', function(event) {
+            $(this).addClass('tableHover2').siblings().removeClass('tableHover2');
+        });
+
+        function showVarieties(techid)
+        {
+            $(".tech_id").val(techid)
+            $("#btn_show_technology_alias").click()
+        }
+
+        function showLibraryVarieties(techid) {
+            $(".tech_id").val(techid)
+            $("#btn_show_technology_alias_in_library").click()
+        }
+
+        function showCreateTechnology()
+        {
+            $("#create_new_alias").css("display","initial");
+        }
+
+
+        $(".btn_cancel_technology_options").click(function(){
+            $("#alias_in_project").css("display",'none')
+            $("#create_new_alias").css("display",'none')
+            $(".tech_id").val("")
+            $("#txt_add_alias").val("")
+            $('.tableHover tbody tr').siblings().removeClass('tableHover2');
+        });
+
+        function showHelp()
+        {
+            var tour = new Tour({
+                steps: [
+                        {
+                            element: "#div_for_help",
+                            title: "{{ _("Select technology and technology options") }}",
+                            content: "<p><b>1</b>. {{ _("Click on the row in the table to see the technology options of the technology") }}.</p><br><p><b>2</b>. {{ _("Select and check the technology options you want to add to the project") }}.</p><br><p><b>3.</b> {{ _("Save the information") }}.</p><br><img src='{{ request.url_for_static('gif/using_technologies.gif') }}'/>",
+                            placement: "bottom"
+                        }
+                       ],
+                template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:900px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+                backdrop: true,
+                backdropContainer: 'body'
+            });
+
+            // Initialize the tour
+            tour.init();
+            tour.restart();
+        }
+
+
+    </script>
+
+    {% include 'snippets/loading.jinja2' %}
+
+{% endblock pagecontent %}

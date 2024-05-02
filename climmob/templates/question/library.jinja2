@@ -1,0 +1,1167 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Questions library") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','metro' %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','shuffle' %}
+    {% cssresource request,'coreresources','toastr' %}
+    {% cssresource request,'coreresources','jsTree' %}
+    {% cssresource request,'coreresources','switch' %}
+    {% cssresource request,'coreresources','select2' %}
+    {% cssresource request,'coreresources','datatimepicker' %}
+    {% cssresource request,'coreresources','switchery' %}
+
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','qlibrary' %}
+    {% jsresource request,'coreresources','sweet' %}
+    {% jsresource request,'coreresources','bootstrapmaxlength' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','switch' %}
+    {% jsresource request,'coreresources','toastr' %}
+    {% jsresource request,'coreresources','jstree' %}
+    {% jsresource request,'coreresources','select2' %}
+    {% jsresource request,'coreresources','validate' %}
+    {% jsresource request,'coreresources','metro' %}
+    {% jsresource request,'coreresources','datatimepicker' %}
+    {% jsresource request,'coreresources','switchery' %}
+
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set iconOfLibrary="fa-comment" %}
+    {% set _title= _("Questions") %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/prepare-data-collection/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+
+    <div class="row" id="allInformation">
+
+
+
+        <div class="col-md-4 ">
+            <div class="ibox">
+                <div class="ibox-title" >
+                    <h5>{{ _("Questions available in the library by category") }}</h5>
+                    <div class="ibox-tools" style="text-align: center">
+                        {% if nextPage %}
+                            {% if "registry" in nextPage %}
+                                <a class="btn btn-success btn-rounded  btn-xs" style="color: white" href="{{ nextPage }}"><i class="fa fa-reply"></i> {{ _('Go back to prepare participant registration form') }}</a>
+                            {% else %}
+                                <a class="btn btn-success btn-rounded  btn-xs" style="color: white" href="{{ nextPage }}"><i class="fa fa-reply"></i> {{ _('Go back to prepare trial data collection moment') }}</a>
+                            {% endif %}
+
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ibox-content " >
+                    <input type="text" class="form-control form-control-sm m-b-xs" id="filterjstree1" placeholder="{{ _("Search question") }}">
+                    <div id="questionsTree" style="display: none; overflow-y: scroll; max-height: calc(100vh - 310px);">
+                        {% set doActions=True %}
+                        {% set jstreeId="jstree1" %}
+                        {% set eventClick=True %}
+                        {% set classByUser=True %}
+                        {% set colorsUserCategories=True %}
+                        {% set redForVisible=True %}
+                        {% set validateLanguage=False %}
+{#                        {% set showTranslate=True %}#}
+                        {% include 'snippets/jstreeQuestions.jinja2' %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="col-md-5 iboxExtraForActions" id="ibox_category" style="display: none">
+            <div class="ibox">
+                <div class="ibox-title" >
+                    <h5>{{ _("Category details") }}</h5>
+                    <div class="ibox-tools">
+                        <button id="btnCancelCategory"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-close"></i> {{ _("Clear and close form") }}</button>
+                    </div>
+                </div>
+                <div class="ibox-content " >
+                    <div class="row ">
+                        <label class="col-sm-4 control-label">{{ _("Category name:") }}</label>
+                        <div class="col-sm-8">
+{#                            <label class="control-label" style="height: 35px;margin-top: 6px">{{ _("Category name:") }}</label>#}
+                            <input  type="text" style="display: none" id="qstgroups_id" class="form-control " value=""  name="qstgroups_id" placeholder=" ">
+                            <input  type="text" id="qstgroups_name" class="form-control " value="" required="" name="qstgroups_name" placeholder=" ">
+                        </div>
+                        <div class="col-sm-12" style="text-align: right">
+                            <br>
+                            <div>
+                                <button id="btnNewCategory" onclick="" type="submit" class="btn btn-primary pull-right btnsCategory">{{ _("Save and close") }}</button>
+                                <button id="btnUpdateCategory" onclick="" type="submit" class="btn btn-primary pull-right btnsCategory">{{ _("Save and close") }}</button>
+                                <button id="btnDeleteCategory" onclick="actionCategory('delete')" type="submit" class="btn btn-danger pull-left btnsCategory"><i class="fa fa-trash"></i> {{ _("Delete category") }}</button>
+                                <br><br>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5 iboxExtraForActions" id="ibox_question" style="display: none">
+            <div class="ibox">
+                <div class="ibox-title" >
+                    <h5>{{ _("Question details") }}</h5>
+                    <div class="ibox-tools">
+                        <button id="btn_cancel_question"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-close"></i> {{ _("Clear and close form") }}</button>
+                    </div>
+                </div>
+                <div class="ibox-content " >
+                    {% include 'snippets/error.jinja2' %}
+
+                    <form class="form-horizontal formElement" role="form" method="post" id="formQuestion" action="{{ request.url }}">
+
+                        {% include 'snippets/question/question-form.jinja2' %}
+
+                        <div>
+                            <input id="btn_add_question"  type="submit" name="btn_add_question" class="btn btn-primary pull-right btnsQuestion" value="{{ _('Save and close') }}">
+                            <input id="btn_update_question"  type="submit" name="btn_update_question" class="btn btn-primary pull-right btnsQuestion" value="{{ _('Save and close') }}">
+                            <input id="btn_delete_question" name="btn_delete_question" class="btn btn-danger pull-left btnsQuestion" onclick="showDeleteQuestion()" value="{{ _('Delete question') }}">
+                            <br><br>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 iboxExtraForActions" id="ibox_preview" style="display: none">
+            <div class="ibox">
+                <div class="ibox-title" >
+                    <h5>{{ _("Preview") }}</h5>
+                </div>
+                <div class="ibox-content " >
+                    <div  class="text-center" id="divForPreview"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <style>
+        .jstree-icon {
+            color: #000000;
+            font-size: 18px;
+        }
+        .jstree-anchor {
+            height:auto !important;
+            white-space:normal !important;
+        }
+
+        .jstree-open newcategory {
+            color: #1E0FBE;
+            font-size: 18px;
+        }
+
+        .jstree-usercategory{
+            color: #1ab394;
+        }
+
+        .jstree-noeditable{
+            color: #ed5565;
+        }
+
+        .jstree-user{
+            color: #1ab394;
+        }
+
+    </style>
+
+    <script>
+
+        var elem_ckb_required_value = document.querySelector('#ckb_required_value');
+        var ckb_required_value = new Switchery(elem_ckb_required_value, { color: '#1AB394' });
+
+        var elem_ckb_tricot_quantitative = document.querySelector('#ckb_tricot_quantitative');
+        var ckb_tricot_quantitative = new Switchery(elem_ckb_tricot_quantitative, { color: '#1AB394' });
+
+        var elem_ckb_answer_tied = document.querySelector('#ckb_answer_tied');
+        var ckb_answer_tied = new Switchery(elem_ckb_answer_tied, { color: '#1AB394' });
+
+        var elem_ckb_answer_notobserved = document.querySelector('#ckb_answer_notobserved');
+        var ckb_answer_notobserved = new Switchery(elem_ckb_answer_notobserved, { color: '#1AB394' });
+
+        {% block dataprivacy_set_switchery %}
+
+        {% endblock dataprivacy_set_switchery %}
+
+        {% if activeUser.login == "bioversity" %}
+            var elem_ckb_question_visible = document.querySelector('#ckb_question_visible');
+            var ckb_question_visible = new Switchery(elem_ckb_question_visible, { color: '#1AB394' });
+        {% endif %}
+
+
+
+        $(document).ready(function() {
+
+
+
+            $('input#question_code').maxlength(
+                {
+                    alwaysShow: true,
+                    threshold: 0,
+                    warningClass: "label label-primary",
+                    limitReachedClass: "label label-danger",
+                    message: ' {{ _("Used") }} %charsTyped% {{ _("of") }} %charsTotal% {{ _("chars") }}.',
+                    placement: "bottom"
+                }
+            )
+
+            $('input#question_name').maxlength(
+                {
+                    alwaysShow: true,
+                    threshold: 0,
+                    warningClass: "label label-primary",
+                    limitReachedClass: "label label-danger",
+                    message: ' {{ _("Used") }} %charsTyped% {{ _("of") }} %charsTotal% {{ _("chars") }}.',
+                    placement: "bottom"
+                }
+            )
+
+            function isNumeric(value)
+            {
+                return /^\d+$/.test(value);
+            }
+
+            $('#question_code').on('input',function()
+            {
+                var value = $(this).val();
+                if(isNumeric(value))
+                {
+                    $(this).val("");
+                }
+                else
+                {
+                    var value_without_space = value.replace(/[^a-z0-9_]/gi,'')
+                    $(this).val(value_without_space);
+                }
+            });
+
+            $("#question_group").select2();
+            $("#question_dtype").select2();
+            var type = $('#question_dtype').val();
+
+            var question_requiredvalue = 0;
+            var objQRequired = $("#ckb_required_value");
+            if (objQRequired.is(':checked'))
+                question_requiredvalue = 1;
+
+            if(type==2 || type==3)
+                $('#div_unit').css('display', 'block');
+            else {
+                $('#div_unit').css('display', 'none');
+                $("#question_unit").val("");
+            }
+
+            if (question_requiredvalue == 1)
+                //objQRequired.bootstrapSwitch('state',true);
+                setSwitchery(ckb_required_value, true);
+            else
+                //objQRequired.bootstrapSwitch('state',false);
+                setSwitchery(ckb_required_value, false);
+
+
+
+            $('#question_dtype').change(function()
+            {
+                clean_extra_fields();
+
+                var value = $('#question_dtype').val();
+
+                $("#question"+value).css("display",'initial');
+
+                if (value != 9 && value != 10) {
+                    $("#extraQuantitative").css("display","block")
+                    $("#form_simple_question").css('display', 'initial')
+                }else{
+                    //$("#ckb_tricot_quantitative").bootstrapSwitch('state', false);
+                    setSwitchery(ckb_tricot_quantitative, false);
+                }
+
+                if(value==2 || value==3)
+                    $('#div_unit').css('display', 'block');
+                else {
+                    $('#div_unit').css('display', 'none');
+                    $("#question_unit").val("-");
+                }
+
+                if(value == 9 )
+                {
+                    $("#form_characteristics").css("display",'initial');
+                    $("#extraForCharacteristics").css("display","initial");
+                    $(".inputForQuestionChar").prop('disabled',false);
+                    $("#question_desc").val("-")
+                }else{
+                    setSwitchery(ckb_answer_notobserved, false)
+                    setSwitchery(ckb_answer_tied, false)
+                }
+
+                if(value == 10)
+                {
+                    $("#form_performance").css("display","initial")
+                    $(".inputForQuestionPerf").prop('disabled',false);
+                    $("#question_desc").val("-")
+                }
+
+                if(value == 5 || value == 6)
+                {
+                    $("#tableForOptions").append("" +
+                    "<tr>" +
+                    "<td class='text-center' style='padding: 10px; width:60%'><input type='text' class='form-control inputForOption' id='inputOptions1' placeholder='{{ _("Option") }}' required oninvalid=\"this.setCustomValidity('{{ _("Write the option value.") }}')\" onchange=\"this.setCustomValidity('')\" /></td>" +
+                    "<td class='text-center' style='width:30%'></td>" +
+                    "<td class='text-center'></td>" +
+                    "<td class='text-center'></td>" +
+                    "</tr>")
+                    $(".inputForOption").prop('disabled',false)
+                    //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+                    enableSwitchery();
+
+                    $("#btn_add_option").css('display', 'initial');
+                    $("#btn_add_option_other").prop('disabled', false);
+                    $("#btn_add_option_na").prop('disabled', false);
+                    $("#form_options").css('display', 'initial');
+                }
+
+            });
+
+            $("#btnCancelCategory").click(function () {
+                clean_extra_section();
+            })
+
+            $("#btn_cancel_question").click(function () {
+                clean_extra_section();
+            })
+
+            $('#jstree1').jstree({
+                'core': {
+                },
+                'plugins': ['types', 'dnd','search'],
+                'types' : {
+                    'default': {
+                        'icon': 'fa fa-folder'
+                    }
+                },
+                'search':{
+                    'case_sensitive': false,
+                    'show_only_matches': true
+                }
+
+            });
+
+            $("#filterjstree1").keyup(function (){
+                var searchString = $(this).val();
+                $("#jstree1").jstree('search', searchString);
+            });
+
+            $('#btn_date13').datetimepicker({
+                weekStart: 1,
+                todayBtn:  1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 2,
+                minView: 2,
+                forceParse: 0
+            })
+            .on('changeDate', function(ev){
+                $('#btn_date13').datetimepicker('hide');
+                var dateSelected = new Date(ev.date);
+                $("#txt_date13").html(dateSelected.toDateString())
+            });
+
+            $('#btn_date15').datetimepicker({
+                weekStart: 1,
+                todayBtn:  1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 2,
+                minView: 2,
+                forceParse: 0
+            })
+            .on('changeDate', function(ev){
+                $('#btn_date15').datetimepicker('hide');
+                var dateSelected = new Date(ev.date);
+                $("#txt_date15").html(dateSelected.toDateString())
+            });
+
+            $('#btn_time14').datetimepicker({
+
+                weekStart: 1,
+                todayBtn:  1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 1,
+                minView: 0,
+                maxView: 1,
+                forceParse: 0
+            })
+            .on('changeDate', function(ev){
+                $('#btn_time14').datetimepicker('hide');
+                var dateSelected = new Date(ev.date);
+                $("#txt_time14").html(dateSelected.toLocaleTimeString())
+            });
+
+            $('#btn_time15').datetimepicker({
+                weekStart: 1,
+                todayBtn:  1,
+                autoclose: 1,
+                todayHighlight: 1,
+                startView: 1,
+                minView: 0,
+                maxView: 1,
+                forceParse: 0,
+
+            })
+            .on('changeDate', function(ev){
+                $('#btn_time15').datetimepicker('hide');
+                var dateSelected = new Date(ev.date);
+                $("#txt_time15").html(dateSelected.toLocaleTimeString())
+            });
+
+            $("#questionsTree").css('display','block')
+
+            {% if seeQuestion %}
+                openQuestions("{{ seeQuestion["question_id"] }}", "{{ seeQuestion["user_name"] }}")
+            {% endif %}
+
+        });
+
+        toastr.options = {
+            closeButton: true,
+            progressBar: true,
+            showMethod: 'slideDown',
+            timeOut: 4000
+        };
+
+        $("#formQuestion").bind("keypress", function(e) {
+            if (e.keyCode == 13) {
+                return false;
+            }
+        });
+
+        $("#formQuestion").submit(function (e) {
+            e.preventDefault();
+            if ( e.originalEvent.submitter.id != "btn_cancel_question" & e.originalEvent.submitter.id != "btn_delete_question")
+                actionQuestion(e.originalEvent.submitter.id);
+
+        });
+
+        function showDeleteQuestion() {
+            var urlAction = '{{ request.application_url }}/question/'+$('#question_id').val()+'/delete'
+            showDelete(urlAction,'{{ _("Do you really want to remove this question ?") }}','{{ request.session.get_csrf_token() }}', {% if nextPage %}"{{ request.route_url("qlibrary", user_name=activeUser.login, _query={'next': nextPage} ) }}" {% else %} "{{ request.route_url("qlibrary", user_name=activeUser.login ) }}" {% endif %})
+            $(this).parent().parent().remove();
+        }
+
+        function prepareOptionsValues()
+        {
+            options = []
+
+            $(".inputForOption").each(function() {
+                i = $(this).attr('id').replace('inputOptions','');
+
+                var other = 0
+                if($("#checkOtherOptions"+i).is(':checked'))
+                    other = 1
+
+                var na = 0
+                if($("#checkNaOptions"+i).is(':checked'))
+                    na = 1
+                options.push({
+                    "value_desc": $("#inputOptions"+i).val(),
+                    "value_isother": other,
+                    "value_isna": na,
+                    "value_order": i
+                })
+            });
+
+
+            return options
+        }
+
+        function actionQuestion(action) {
+            $("#btn_add_question").prop('disabled', true);
+            $("#btn_update_question").prop('disabled', true);
+
+            var question_requiredvalue = 0;
+            if ($("#ckb_required_value").is(':checked'))
+                question_requiredvalue = 1;
+
+            var question_tied = 0;
+            if ($("#ckb_answer_tied").is(':checked'))
+                question_tied = 1;
+
+            var question_notobserved = 0;
+            if ($("#ckb_answer_notobserved").is(':checked'))
+                question_notobserved = 1;
+
+            var question_quantitative = 0;
+            if ($("#ckb_tricot_quantitative").is(':checked'))
+                question_quantitative = 1;
+
+            {% if activeUser.login == "bioversity" %}
+                var question_visible = 0;
+                if ($("#ckb_question_visible").is(':checked'))
+                    question_visible = 1;
+            {% endif %}
+
+            {% block dataprivacy_ajax_post_prepare %}
+
+            {% endblock dataprivacy_ajax_post_prepare %}
+
+            optionsValues = prepareOptionsValues()
+
+            $.ajax({
+                url: '{{ request.route_url('questionActions') }}',
+                datatype: "json",
+                type: "POST",
+                data: {
+                    "csrf_token": '{{ request.session.get_csrf_token() }}',
+                    "action": action,
+                    "question_id": $("#question_id").val(),
+                    "question_code": $("#question_code").val(),
+                    "question_name":$("#question_name").val(),
+                    "question_desc": $("#question_desc").val(),
+                    "question_unit": $("#question_unit").val(),
+                    "question_posstm": $("#question_posstm").val(),
+                    "question_negstm": $("#question_negstm").val(),
+                    "question_perfstmt": $("#question_perfstmt").val(),
+                    "question_group": $("#question_group").val(),
+                    "question_forms": $("#question_forms").val(),
+                    "question_dtype": parseInt($("#question_dtype").val()),
+                    "question_lang": $("#question_lang").val(),
+                    "question_requiredvalue": question_requiredvalue,
+                    "question_tied": question_tied,
+                    "question_notobserved": question_notobserved,
+                    "question_quantitative":question_quantitative,
+                    "optionsValues":  JSON.stringify(optionsValues),
+                    {% if activeUser.login == "bioversity" %}
+                    "question_visible": question_visible,
+                    {% endif %}
+
+                    {% block dataprivacy_ajax_post %}
+
+                    {% endblock dataprivacy_ajax_post %}
+
+                    {% block ajax_post_extra %}
+
+                    {% endblock ajax_post_extra %}
+                },
+                success: function (respuesta) {
+
+                    if(respuesta['result'] == "error")
+                    {
+                        toastr.error(respuesta['error']);
+                        $("#btn_add_question").prop('disabled', false);
+                        $("#btn_update_question").prop('disabled', false);
+                    }else{
+
+                        {% if nextPage %}
+                            var URL = "{{ request.route_url("qlibrary", user_name=activeUser.login ,_query={ "questionId": "__questionId__", "next": nextPage} ) }}"
+                        {% else %}
+                            var URL = "{{ request.route_url("qlibrary", user_name=activeUser.login ,_query={ "questionId": "__questionId__"} ) }}"
+                        {% endif %}
+
+                        URL = URL.replace("__questionId__",respuesta["question_id"])
+                        location.href = URL
+                    }
+                },
+                error: function (respuesta) {
+                    toastr.error("Error:"+ respuesta);
+                    $("#btn_add_question").prop('disabled', false);
+                    $("#btn_update_question").prop('disabled', false);
+                }
+            });
+        }
+
+        $("#btn_add_option").click(function () {
+            all = $(".inputForOption").length;
+            var rowCount = $(".inputForOption").eq(all-1).attr("id").replace('inputForOption','');
+
+            $("#tableForOptions").append("" +
+            "<tr>" +
+            "<td class='text-center' style='padding: 10px'><input type='text' class='form-control inputForOption' id='inputOptions"+(rowCount+1)+"' name='input_array_name[]' placeholder='{{ _("Option") }}' required oninvalid=\"this.setCustomValidity('{{ _("Write the option value.") }}')\" onchange=\"this.setCustomValidity('')\" /></td>" +
+            "<td class='text-center'></td>" +
+            "<td class='text-center'> <a class='btn_delete_option btn btn-danger btnsQuestion' style='margin: 5px'> <i class='fa fa-trash'></i></a></td>" +
+            "</tr>")
+
+            //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+            enableSwitchery();
+
+            $(".btn_delete_option").click(function () {
+                $(this).parent().parent().remove();
+            });
+        })
+
+        $("#btn_add_option_other").click(function () {
+            all = $(".inputForOption").length;
+            var rowCount = $(".inputForOption").eq(all-1).attr("id").replace('inputForOption','');
+
+            $("#btn_add_option_other").prop('disabled', true);
+            $("#tableForOptions").append("" +
+            "<tr>" +
+            "<td class='text-center' style='padding: 10px'><input type='text' class='form-control inputForOption' id='inputOptions"+(rowCount+1)+"' value='{{ _("Other") }}' placeholder='{{ _("Option") }}' required oninvalid=\"this.setCustomValidity('{{ _("Write the option value.") }}')\" onchange=\"this.setCustomValidity('')\" /></td>" +
+            "<td class='text-center'><div class='bg-success p-xs b-r-sm'> {{ _("Other") }}</div><div style='display:none'><label class='control-label'>{{ _("Value is other") }}</label><br><input type='checkbox' disabled  class='inputForQuestionCheck' id='checkOtherOptions"+(rowCount+1)+"' data-on-color='success' data-off-color='danger' data-on-text='Yes' data-off-text='No' checked=''><br><br></div></td>" +
+            "<td class='text-center'> <a class='btn_delete_option_other btn btn-danger btnsQuestion' style='margin: 5px'> <i class='fa fa-trash'></i></a></td>" +
+            "</tr>")
+            //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+            enableSwitchery();
+            $("#checkOtherOptions"+(rowCount+1)).hide()
+
+            $(".btn_delete_option_other").click(function () {
+                $(this).parent().parent().remove();
+                $("#btn_add_option_other").prop('disabled', false);
+            });
+        })
+
+        $("#btn_add_option_na").click(function () {
+            all = $(".inputForOption").length;
+            var rowCount = $(".inputForOption").eq(all-1).attr("id").replace('inputForOption','');
+
+            $("#btn_add_option_na").prop('disabled', true);
+
+            $("#tableForOptions").append("" +
+            "<tr>" +
+            "<td class='text-center' style='padding: 10px'><input type='text' class='form-control inputForOption' id='inputOptions"+(rowCount+1)+"' value='{{ _("Not applicable") }}' placeholder='{{ _("Option") }}' required oninvalid=\"this.setCustomValidity('{{ _("Write the option value.") }}')\" onchange=\"this.setCustomValidity('')\" /></td>" +
+            "<td class='text-center'><div class='bg-info p-xs b-r-sm'> {{ _("Not applicable") }}</div><div style='display:none'><label class='control-label'>{{ _("Value is not applicable") }}</label><br><input type='checkbox' disabled class='inputForQuestionCheck' id='checkNaOptions"+(rowCount+1)+"'  data-on-color='success' data-off-color='danger' data-on-text='Yes' data-off-text='No' checked=''><br><br></div></td>" +
+            "<td class='text-center'> <a class='btn_delete_option_na btn btn-danger btnsQuestion' style='margin: 5px'> <i class='fa fa-trash'></i></a></td>" +
+            "</tr>")
+
+            //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+            enableSwitchery();
+
+            $(".btn_delete_option_na").click(function (event) {
+                $(this).parent().parent().remove();
+                $("#btn_add_option_na").prop('disabled', false);
+            });
+        })
+
+        $("#btnNewCategory").click(function () {
+            actionCategory('new')
+        })
+
+        $("#btnUpdateCategory").click(function () {
+            actionCategory('update')
+        })
+
+        function actionCategory(action) {
+            if ($("#qstgroups_name").val() != "") {
+                $.ajax({
+                    url: '{{ request.route_url('categories') }}',
+                    datatype: "json",
+                    type: "POST",
+                    data: {
+                        "csrf_token": '{{ request.session.get_csrf_token() }}',
+                        "action": action,
+                        "qstgroups_name": $("#qstgroups_name").val(),
+                        "qstgroups_id": $("#qstgroups_id").val()
+                    },
+                    success: function (respuesta) {
+
+                        if(respuesta['result'] == "error")
+                        {
+                            toastr.error(respuesta['error']);
+                        }else{
+                            //toastr.success(respuesta['success']);
+                            {% if nextPage %}
+                                location.href = "{{ request.route_url("qlibrary", user_name=activeUser.login, _query={'next': nextPage}) }}";
+                            {% else %}
+                                location.href = "{{ request.route_url("qlibrary", user_name=activeUser.login) }}";
+                            {% endif %}
+                        }
+                    },
+                    error: function (respuesta) {
+                        toastr.error("Error:"+ respuesta);
+                    }
+                });
+            }
+            else {
+                toastr.error("{{ _("Write the name of the category") }}")
+                $("#qstgroups_name").val().focus()
+            }
+        }
+
+        function createCategory()
+        {
+            $("#jstree1").jstree("close_all");
+            clean_extra_section();
+            clean_buttoms_category();
+            $("#qstgroups_name").val("")
+            $("#qstgroups_id").val("")
+            $("#btnNewCategory").css('display','initial')
+            $("#ibox_category").css('display','initial')
+            $("#qstgroups_name").focus()
+        }
+
+        function openCategories(categoryId, user_name, count)
+        {
+            $("#jstree1").jstree("close_all");
+
+            clean_extra_section();
+            clean_buttoms_category();
+            var URL = "{{ request.route_url('getUserCategoryDetails',user="__user_name__", categoryid="__categoryid__") }}"
+            URL = URL.replace("__user_name__", user_name).replace("__categoryid__", categoryId)
+
+            $.get(URL, function (dataJson, status) {
+
+                $("#qstgroups_name").val(dataJson["qstgroups_name"])
+                $("#qstgroups_id").val(dataJson["qstgroups_id"])
+
+                $("#btnUpdateCategory").css('display','initial')
+                if(dataJson["count"]==0)
+                    $("#btnDeleteCategory").css('display','initial')
+
+
+                $("#ibox_category").css('display','initial')
+
+                $("#qstgroups_name").focus()
+            })
+        }
+
+        function loadLanguages(userName="{{ activeUser.login }}")
+        {
+            var URL = "{{ request.route_url('getUserLanguages', user="__user__") }}"
+            URL = URL.replace("__user__", userName)
+
+            $("#question_lang").empty().append('<option value=""> {{ _("Select a language") }}</option>');
+            var selected = ""
+            $.get(URL, function (dataJson, status) {
+
+                for (var i = 0; i < dataJson.length; i++){
+                    var info = dataJson[i]
+
+                    if (info.lang_default == 1)
+                    {
+                        selected = info.lang_code
+                    }
+
+                    $('#question_lang').append('<option value="'+info.lang_code+'">'+info.lang_name+'</option>');
+
+                    $("#question_lang").trigger("change.select2");
+                }
+
+                $("#question_lang").val(selected);
+                $("#question_lang").trigger("change.select2");
+
+            })
+
+
+        }
+
+        function createQuestion(category)
+        {
+            clean_extra_fields();
+            clean_extra_section();
+            clean_buttoms_question();
+
+            loadLanguages();
+
+            $(".inputForQuestion").val("")
+            $("#question_group").val(category);
+            $("#question_forms").val("3");
+            $('#question_group').trigger("change.select2");
+            $("#question_dtype").val("1")
+            $('#question_dtype').trigger('change.select2');
+            $("#question1").css("display",'initial');
+
+
+            //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+            enableSwitchery();
+
+            //$("#ckb_required_value").bootstrapSwitch('state',true);
+            setSwitchery(ckb_required_value, true);
+
+            //$("#ckb_tricot_quantitative").bootstrapSwitch('state',false);
+            setSwitchery(ckb_tricot_quantitative, false)
+
+            //$("#ckb_answer_tied").bootstrapSwitch('state',false);
+            setSwitchery(ckb_answer_tied, false)
+
+            //$("#ckb_answer_notobserved").bootstrapSwitch('state',false);
+            setSwitchery(ckb_answer_notobserved, false)
+
+            {% if activeUser.login == "bioversity" %}
+                //$("#ckb_question_visible").bootstrapSwitch('state',true);
+                setSwitchery(ckb_question_visible, true)
+            {% endif %}
+
+            {% block dataprivacy_function_create_question %}
+
+            {% endblock dataprivacy_function_create_question %}
+
+                $("#extraQuantitative").css("display","block")
+            $("#form_simple_question").css('display', 'initial')
+
+            clean_buttoms_question();
+
+            $(".inputForQuestion").attr('readonly', false);
+            $(".inputForOption").attr('readonly', false);
+            $(".inputForQuestionSelect").select2({disabled:false});
+            //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+            enableSwitchery();
+
+            $("#btn_add_question").prop('disabled', false);
+            $("#btn_add_question").css('display','initial')
+
+            $(".inputForQuestionSelect").select2({ width: '100%' });
+            $("#ibox_question").css('display','initial');
+
+            $("#question_code").focus();
+
+
+        }
+
+        function openQuestions(question_id, user_name)
+        {
+
+            var showOther = true
+            var showNa = true
+            clean_extra_fields();
+            clean_extra_section();
+            clean_buttoms_question();
+
+            loadLanguages(user_name);
+
+            var userInSession = "{{ activeUser.login }}"
+
+            var URL = "{{ request.route_url('getUserQuestionDetails',user="__user_name__", questionid="__questionid__") }}"
+            URL = URL.replace("__user_name__", user_name).replace("__questionid__", question_id)
+
+            $.get(URL, function (dataJson, status) {
+
+                $("#question_id").val(dataJson["question_id"])
+                $("#question_code").val(dataJson["question_code"])
+                $("#question_name").val(dataJson["question_name"])
+                $("#question_desc").val(dataJson["question_desc"])
+                $("#question_unit").val(dataJson["question_unit"])
+                $("#question_posstm").val(dataJson["question_posstm"])
+                $("#question_negstm").val(dataJson["question_negstm"])
+                $("#question_perfstmt").val(dataJson["question_perfstmt"])
+                $("#question_group").val(dataJson["qstgroups_id"] +"[*$%&]"+dataJson["qstgroups_user"])
+                $('#question_group').trigger("change.select2");
+                $("#question_forms").val(dataJson["question_forms"])
+                $("#question_forms").trigger('change.select2');
+                $("#question_dtype").val(dataJson["question_dtype"])
+                $('#question_dtype').trigger('change.select2');
+                $("#question_lang").val(dataJson["question_lang"])
+                $('#question_lang').trigger("change.select2");
+
+                $("#question"+dataJson["question_dtype"]).css("display",'initial');
+
+                {% block function_open_questions_extra_field %}
+
+                {% endblock function_open_questions_extra_field %}
+
+                //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+                enableSwitchery();
+
+                if (dataJson["question_requiredvalue"] == 1)
+                    //$("#ckb_required_value").bootstrapSwitch('state',true);
+                    setSwitchery(ckb_required_value, true);
+                else
+                    //$("#ckb_required_value").bootstrapSwitch('state',false);
+                    setSwitchery(ckb_required_value, false)
+
+                if (dataJson["question_tied"] == 1)
+                    //$("#ckb_answer_tied").bootstrapSwitch('state',true);
+                    setSwitchery(ckb_answer_tied, true)
+                else
+                    //$("#ckb_answer_tied").bootstrapSwitch('state',false);
+                    setSwitchery(ckb_answer_tied, false)
+
+                if (dataJson["question_notobserved"] == 1)
+                    //$("#ckb_answer_notobserved").bootstrapSwitch('state',true);
+                    setSwitchery(ckb_answer_notobserved, true)
+                else
+                    //$("#ckb_answer_notobserved").bootstrapSwitch('state',false);
+                    setSwitchery(ckb_answer_notobserved, false)
+
+
+                if (dataJson["question_quantitative"] == 1)
+                    //$("#ckb_tricot_quantitative").bootstrapSwitch('state',true);
+                    setSwitchery(ckb_tricot_quantitative, true)
+                else
+                    //$("#ckb_tricot_quantitative").bootstrapSwitch('state',false);
+                    setSwitchery(ckb_tricot_quantitative, false)
+
+                {% if activeUser.login == "bioversity" %}
+                    if (dataJson["question_visible"] == 1)
+                        //$("#ckb_question_visible").bootstrapSwitch('state',true);
+                        setSwitchery(ckb_question_visible, true)
+                    else
+                        //$("#ckb_question_visible").bootstrapSwitch('state',false);
+                        setSwitchery(ckb_question_visible, false)
+                {% endif %}
+
+                {% block dataprivacy_function_open_questions %}
+
+                {% endblock dataprivacy_function_open_questions %}
+
+                if(dataJson["question_dtype"] == '2' || dataJson["question_dtype"] == '3')
+                {
+                    $('#div_unit').css('display', 'block');
+                }else{
+                    $('#div_unit').css('display', 'none');
+                }
+
+                if (dataJson["question_dtype"] != "9" && dataJson["question_dtype"] != "10") {
+                        $("#extraQuantitative").css("display","block")
+                        $("#form_simple_question").css('display', 'initial')
+                    }
+
+                if(dataJson["question_dtype"] == "9" )
+                {
+                    $("#form_characteristics").css("display",'initial')
+                    $("#extraForCharacteristics").css("display","initial")
+                    $(".inputForQuestionChar").prop('disabled',false);
+                    $("#question_desc").val("-")
+                }
+
+                if(dataJson["question_dtype"] == "10")
+                {
+                    $("#form_performance").css("display","initial")
+                    $(".inputForQuestionPerf").prop('disabled',false);
+                    $("#question_desc").val("-")
+                }
+
+                if(dataJson["question_dtype"] == '5' || dataJson["question_dtype"] == '6')
+                {
+                    $("#form_options").css('display','initial');
+                    $("#tableForOptions").html("")
+
+                    var options = dataJson["question_options"];
+
+                    for (var i = 0; i < options.length; i+=1) {
+                        isother = false
+                        isna = false
+                        detail = "<tr>" +
+                        "<td class='text-center' style='padding: 10px; width:60%'><input type='text' class='form-control inputForOption' id='inputOptions"+(i+1)+"' placeholder='{{ _("Option") }}' required oninvalid=\"this.setCustomValidity('{{ _("Write the option value.") }}')\" onchange=\"this.setCustomValidity('')\"  value='"+options[i].value_desc+"'/></td>" +
+                        "<td class='text-center' style='width:30%'>"
+
+                        if(options[i].value_isother == 1)
+                        {
+                            detail += "<div class='bg-success p-xs b-r-sm'> {{ _("Other") }}</div><div style='display:none'><label class='control-label'>{{ _("Value is other") }}</label><br><input type='checkbox' class='inputForQuestionCheck' disabled id='checkOtherOptions"+(i+1)+"' data-on-color='success' data-off-color='danger' data-on-text='Yes' data-off-text='No' checked=''><br></div>"
+                            showOther = false
+                            isother = true
+                        }
+
+                        if(options[i].value_isna == 1)
+                        {
+                            detail += "<div class='bg-info p-xs b-r-sm'> {{ _("Not applicable") }}</div><div style='display:none'><label class='control-label'>{{ _("Value is not applicable") }}</label><br><input type='checkbox' class='inputForQuestionCheck' disabled id='checkNaOptions"+(i+1)+"' data-on-color='success' data-off-color='danger' data-on-text='Yes' data-off-text='No' checked=''><br></div>"
+                            showNa = false
+                            isna = true
+                        }
+
+                        detail += "</td>"
+
+                        detail += "<td class='text-center'> "
+                        if(i !=0 )
+                            detail += "<a class='btn_delete_option btn btn-danger btnsQuestion' id='"+isother+"{--}"+isna+"' style='margin: 5px'> <i id='"+isother+"{--}"+isna+"' class='fa fa-trash'></i></a>"
+                            //detail += "<a class='btn_delete_option btn btn-danger btnsQuestion' id='idOption_"+options[i].value_code+"{--}"+options[i].question_id+"' style='margin: 5px'> <i id='idOption_"+options[i].value_code+"{--}"+options[i].question_id+"' class='fa fa-trash'></i></a>"
+
+                        detail+= "<br></td>" +
+                        "</tr>"
+
+                        $("#tableForOptions").append(detail)
+                    }
+
+                    $(".btn_delete_option").click(function (event) {
+                        id= event.target.id.split('{--}')
+                        if (id[0] == 'true')
+                            $("#btn_add_option_other").prop('disabled', false);
+
+                        if (id[1] == 'true')
+                            $("#btn_add_option_na").prop('disabled', false);
+                        $(this).parent().parent().remove();
+                    });
+
+                }
+
+                clean_buttoms_question();
+
+                if(userInSession == dataJson["user_name"] && dataJson["assigned"] == 0)
+                {
+                    $(".inputForQuestion").attr('readonly', false);
+                    $(".inputForOption").attr('readonly', false);
+                    $(".inputForQuestionSelect").select2({disabled:false});
+                    //$(".inputForQuestionCheck").bootstrapSwitch('readonly', false);
+                    enableSwitchery();
+
+
+                    $("#question_code").attr('readonly',true)
+                    $("#btn_add_option").css('display','initial')
+                    $("#btn_update_question").prop('disabled', false);
+                    $("#btn_update_question").css('display','initial')
+                    $("#btn_delete_question").css('display','initial')
+                    $(".btn_delete_option").css('display','initial')
+
+                    if(showNa)
+                    {
+                        $("#btn_add_option_na").prop('disabled', false);
+                    }else{
+                        $("#btn_add_option_na").prop('disabled', true);
+                    }
+
+                    if(showOther)
+                    {
+                        $("#btn_add_option_other").prop('disabled', false);
+                    }else{
+                        $("#btn_add_option_other").prop('disabled', true);
+                    }
+
+
+
+                }else{
+                    $(".inputForQuestion").attr('readonly', true);
+                    $(".inputForOption").attr('readonly', true);
+                    $(".inputForQuestionSelect").select2({disabled:'readonly'});
+                    //$(".inputForQuestionCheck").bootstrapSwitch('readonly', true);
+                    disableSwitchery();
+                }
+
+                {% if activeUser.login == "bioversity" %}
+
+                    if(jQuery.inArray(dataJson["question_id"], [162,163,199]) == -1)
+                    {
+                        //$("#ckb_question_visible").bootstrapSwitch('readonly', false);
+                        ckb_question_visible.enable();
+                        $("#question_desc").attr('readonly',false);
+                        $("#btn_update_question").prop('disabled', false);
+                        $("#btn_update_question").css('display', 'initial');
+                    }
+
+                {% endif %}
+
+                $(".inputForQuestionSelect").select2({ width: '100%' });
+
+                $("#ibox_question").css('display','initial');
+
+                showPreview(user_name, question_id, dataJson["question_lang"]);
+
+                $("#question_code").focus()
+
+
+                    if (userInSession == dataJson["user_name"])
+                    {
+
+                        if (dataJson["question_lang"] == null){
+                            $("#question_lang").select2({disabled:false});
+                            $("#btn_update_question").prop('disabled', false);
+                            $("#btn_update_question").css('display', 'block');
+                        }
+
+                        {% if "dataprivacyExtension" in request.registry.settings.get("climmob.plugins","").split(" ") %}
+                            $("#btn_update_question").prop('disabled', false);
+                            $("#btn_update_question").css('display', 'block');
+                            ckb_question_sensitive.enable();
+                        {% endif %}
+                    }
+            });
+
+        }
+
+        function showPreview(user_name, question_id, language)
+        {
+            var URL;
+            if (language) {
+                URL = "{{ request.route_url('getUserQuestionPreview',user="__user_name__", questionid="__questionid__", _query={"language":"__language__"}) }}"
+            }else{
+                URL = "{{ request.route_url('getUserQuestionPreview',user="__user_name__", questionid="__questionid__") }}"
+            }
+            URL = URL.replace("__user_name__", user_name).replace("__questionid__", question_id)
+
+            if (language) {
+                URL = URL.replace("__language__", language)
+            }
+
+            $.get(URL, function (data, status) {
+                $("#divForPreview").html(data);
+                $("#ibox_preview").css('display','initial');
+            })
+        }
+
+        function clean_extra_fields()
+        {
+            $("#extraQuantitative").css("display","none");
+            $(".formExtraForQuestion").css("display","none");
+            $(".inputForQuestionChar").prop('disabled',true);
+            $(".inputForQuestionPerf").prop('disabled',true);
+            $(".inputForOption").prop('disabled',true);
+            $("#question_unit").val("")
+            $("#question_posstm").val("")
+            $("#question_negstm").val("")
+            $("#question_perfstmt").val("")
+            $("#tableForOptions").html("")
+            $("#question_desc").val("")
+        }
+
+        function clean_extra_section()
+        {
+            $(".iboxExtraForActions").css("display","none")
+        }
+
+        function clean_buttoms_category()
+        {
+            $(".btnsCategory").css('display','none')
+        }
+
+        function clean_buttoms_question()
+        {
+            $(".btnsQuestion").css('display','none')
+        }
+
+        function enableSwitchery()
+        {
+            ckb_required_value.enable();
+            ckb_tricot_quantitative.enable();
+            ckb_answer_tied.enable();
+            ckb_answer_notobserved.enable();
+            {% if activeUser.login == "bioversity" %}
+                ckb_question_visible.enable();
+            {% endif %}
+
+            {% block dataprivacy_enable_switchery %}
+
+            {% endblock dataprivacy_enable_switchery %}
+        }
+
+        function disableSwitchery()
+        {
+            ckb_required_value.disable();
+            ckb_tricot_quantitative.disable();
+            ckb_answer_tied.disable();
+            ckb_answer_notobserved.disable();
+            {% if activeUser.login == "bioversity" %}
+                ckb_question_visible.disable();
+            {% endif %}
+
+            {% block dataprivacy_disable_switchery %}
+
+            {% endblock dataprivacy_disable_switchery %}
+        }
+
+        function setSwitchery(switchElement, checkedBool)
+        {
+            if((checkedBool && !switchElement.isChecked()) || (!checkedBool && switchElement.isChecked())) {
+                switchElement.setPosition(true);
+            }
+        }
+
+    </script>
+
+
+    {% include 'snippets/loading.jinja2' %}
+
+{% endblock pagecontent %}

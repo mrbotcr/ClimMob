@@ -1,0 +1,593 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob - Registration") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','metro' %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','jsTree' %}
+    {% cssresource request,'coreresources','tour' %}
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','sweet' %}
+    {#    {% jsresource request,'coreresources','delete' %}#}
+    {% jsresource request,'coreresources','toastr' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','jstree' %}
+    {% jsresource request,'coreresources','tour' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/prepare-grower-registration/" %}
+    {% if activeProject.project_registration_and_analysis == 0 %}
+        {% set _title= _("Prepare participant registration form") %}
+    {% else %}
+        {% set _title= _("Participant registration and trial data collection") %}
+    {% endif %}
+
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+
+    <style>
+
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+      color: #495057;
+      background-color: #fff;
+      border-color: #dee2e6 #dee2e6 #fff;
+    }
+
+    </style>
+
+    <div class="row" style="text-align: center">
+        <div class="col-lg-12" style="padding-left: 10px;padding-right: 15px;">
+            <div class="ibox-content" style="padding: 10px">
+                <p style="margin: 0px">
+                    {{ _("Here you add and manage the administrative questions that field agents will ask the participants during the registration at the start of the project. This information is important for administrative reasons (who is participating, where do they live etc.) and for data analysis (e.g. to understand if all female participants preferred a certain technology option). Once you defined the list of questions, they will become available through the ODK Collect app. Field agents can input the information directly into the app, when registering the participants.") }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% set onlySee = False %}
+
+    {% if activeProject["access_type"] == 4 or activeProject["project_regstatus"] > 0 %}
+        {% set onlySee = True %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-{% if onlySee %}6{% else %}8{% endif %}" style="padding-right: 5px; padding-left: 5px">
+            <div style="display:flex;">
+
+                {% if not onlySee %}
+                    <div style="width: 49%; ">
+                        <div class="col-md-12" style="padding-right: 5px; padding-left: 5px">
+                            <div class="ibox">
+                                <div class="ibox-title" >
+                                    <h5>{{ _("Available questions from library") }}</h5>
+                                    <div class="ibox-tools" >
+
+                                    </div>
+                                </div>
+                                <div class="ibox-content" >
+                                    <div style="text-align: center; margin-bottom: 10px">
+                                        <a class="btn btn-success btn-rounded  btn-xs" style="color: white" onclick="showHelp()"><i class="fa fa-question-circle"></i> {{  _("Show help") }}</a>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm m-b-xs" id="filterjstree2" placeholder="{{ _("Search question") }}">
+                                    <div style="overflow-x: hidden; overflow-y: scroll; min-height: 300px; max-height: calc(100vh - 345px);" id="div_availables">
+                                        {% set doActions=False %}
+                                        {% set jstreeId="jstree2" %}
+                                        {% set eventClick=False %}
+                                        {% set classByUser=False %}
+                                        {% set classByRegRequired=False %}
+                                        {% set showCreator=True %}
+                                        {% set colorsUserCategories=False %}
+                                        {% set next =request.url %}
+                                        {% include 'snippets/jstreeQuestions.jinja2' %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div  style="width: {% if onlySee %}100{% else %}49{% endif %}%;">
+                    <div class="col-md-12" style="padding-right: 5px; padding-left: 5px">
+                        <div class="col-lg-12" id="form_questions" style="padding-right: 0px; padding-left: 0px">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    {% if activeProject.project_registration_and_analysis == 0 %}
+                                        <h5>{{ _("Prepare participant registration form") }}</h5>
+                                    {% else %}
+                                        <h5>{{ _("Participant registration and trial data collection") }}</h5>
+                                    {% endif %}
+
+                                    <div class="ibox-tools">
+                                        {% if not onlySee %}<a class="btn btn-success btn-rounded  btn-xs" style="color: white" href="{{ request.route_url('qlibrary', user_name=activeUser.login,_query={'next': request.url}) }}"><i class="fa fa-plus-square"></i> {{  _("Add new question") }}</a> {% endif %}
+                                    </div>
+                                </div>
+                                <div class="ibox-content" >
+
+                                    <div class="tabs-container">
+
+                                        <ul class="nav nav-tabs" role="tablist" >
+                                            {% for lang in activeProject["languages"] %}
+                                                <li {% if lang.lang_default == 1 %}title="{{ _("Main language") }}" {% endif %}><a class="nav-link {% if lang.lang_code == languageActive %}active{% endif %} btnSwitchLanguage" idOfLanguage="{{ lang.lang_code }}" data-toggle="tab" href="#tab{{ lang.lang_code }}">{{ lang.lang_name}} {% if lang.lang_default == 1 %}<i class="fa fa-check" ></i>{% endif %}</a></li>
+                                            {% endfor %}
+                                        </ul>
+
+                                        <div class="tab-content" >
+                                            <div role="tabpanel" id="tab{{ languageActive }}" class="tab-pane active">
+                                                <div class="panel-body">
+
+                                                    <div style="overflow-x: hidden; overflow-y: scroll; min-height: 375px; max-height: calc(100vh - 270px);">
+                                                        {% include 'snippets/error.jinja2' %}
+                                                        {% set eventClick=False %}
+                                                        {% set classByUser=False %}
+                                                        {% set classByRegRequired=True %}
+                                                        {% set classByAssesRequired=False %}
+                                                        {% set createSection=True %}
+                                                        {% set jstreeName="jstree1" %}
+                                                        {% set showCreator=True %}
+                                                        {% set colorsUserCategories=False %}
+                                                        {% set validateLanguage=True %}
+                                                        {% set next =request.url %}
+                                                        {% include 'snippets/jstreeForm.jinja2' %}
+                                                        <form class="form-horizontal formElement" role="form" method="post" action="{{ request.path }}" id="formFoSendInformation" style="display: none">
+                                                            <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                                                            <textarea id="nestable-output" name="neworder" class="form-control" style="display:none;"></textarea>
+                                                        </form>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12 extraDiv" id="form_section" style="display:none; padding-right: 0px; padding-left: 0px">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>{{ _("New section") }}</h5>
+                                    <div class="ibox-tools">
+                                        <button id="btnCancelSection"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-close"></i> {{ _("Clear and close form") }}</button>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <form class="form-horizontal formElement" role="form" method="post" id="formSection" action="{{ request.url }}">
+                                        {% include 'snippets/error.jinja2' %}
+
+                                        {% include 'snippets/project/registry/groupform.jinja2' %}
+                                        <div class="row" style="text-align: right; padding-right: 15px">
+                                            <div >
+                                                <input id="btnNewSection"    style="display: none" type="submit" class="btn btn-primary pull-right btnsSection" value="{{ _("Save") }}"></input>
+                                                <input id="btnUpdateSection" style="display: none" type="submit" class="btn btn-primary pull-right btnsSection" value="{{ _("Save") }}"></input>
+                                                <input id="btnDeleteSection" style="display: none" onclick="showDeleteSection()"  class="btn btn-danger pull-left btnsSection" value="{{ _("Delete") }}"></input>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <div class="col-md-{% if onlySee %}6{% else %}4{% endif %}" id="form_preview">
+            <div class="ibox">
+                <div class="ibox-title" >
+                    <h5>{{ _("Preview") }}</h5>
+                    <div class="ibox-tools">
+                        {% if not onlySee %}
+                            <form class="form-horizontal" role="form" method="post" action="{{ request.url }}">
+                                <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                                <button name="btn_download_doc" type="submit" class="btn btn-success btn-rounded  btn-xs" > <b><i class="fa fa-download"></i></b> {{ _("Download form") }}</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ibox-content " >
+                    <div id="htmlForPreview">
+                        {% set showPhone=True %}
+                        {% set img1=request.url_for_static('landing/odk.png') %}
+                        {% set img2=request.url_for_static('landing/odk2.png') %}
+                        {% set img3=request.url_for_static('landing/odk3.png') %}
+                        {% set isOneProject=True %}
+                        {% include 'snippets/project/previewForm.jinja2'%}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <style>
+        .jstree-icon {
+            color: #000000;
+            font-size: 18px;
+        }
+        .jstree-anchor {
+            height:auto !important;
+            white-space:normal !important;
+        }
+
+        .jstree-open newcategory {
+            color: #1E0FBE;
+            font-size: 18px;
+        }
+
+        .jstree-usercategory{
+            color: #1ab394;
+        }
+
+        .jstree-noeditable{
+            color: #ed5565;
+        }
+
+        .jstree-user{
+            color: #1ab394;
+        }
+
+    </style>
+
+
+    <script>
+        $(document).ready(function (){
+           $(".btnSwitchLanguage").click(function (){
+               window.location.href = "{{ request.route_url('registry', user=activeProject["owner"].user_name, project=activeProject.project_cod) }}?language="+$(this).attr("idOfLanguage")
+           }) ;
+        });
+
+        $(document).ready(function () {
+
+            cleanBtns();
+            $("#btnNewSection").css('display','initial');
+
+            $('#jstree1').jstree({
+                'core': {
+                    'check_callback': function(operation, node, node_parent, node_position, more) {
+
+                        {% if onlySee %}
+                            return false
+                        {% endif %}
+
+                        if(node.id =="QST162" || node.id =="QST199" || node.id=="QST164")
+                        {
+                            if(node_parent.id !="GRP1")
+                            {
+                                return false
+                            }
+                        }
+
+                        if(node.parent =="#"){
+                            if(node.id.substring(0,2)=="j2")
+                            return false;
+                        }
+
+                        if(node.id.substring(0,3)!="GRP") {
+                            if(node_parent.parent == null || node_parent.parents.length >1)
+                                return false;
+                        }
+
+                        if(node.id.substring(0,3)=="GRP")
+                        {
+                            if(node_parent.parent != null)
+                            {
+                                return false;
+                            }else
+                            {
+                                if(node_parent.id.substring(0,3)=="GRP")
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+
+
+                        if(node_parent.id=="createGroup")
+                            return false;
+
+                        if(node.id=="createGroup")
+                            return false;
+                    },
+                },
+                'plugins': ['types', 'dnd'],
+                'types' : {
+                    'default': {
+                        'icon': 'fa fa-folder'
+                    },
+                    'group': {
+                        'icon': 'fa fa-folder'
+                    },
+                    'question': {
+                        'icon': 'fa fa-folder'
+                    }
+                }
+
+            });
+
+            $("#jstree1").bind("copy_node.jstree", function(e, data) {
+                data.instance.set_id(data.node, data.original.id);
+                var v = $(this).jstree(true).get_json('#', {flat:true});
+                createJson(v)
+            });
+
+            $("#jstree1").bind("move_node.jstree", function(e, data) {
+                var v = $(this).jstree(true).get_json('#', {flat:true});
+
+                createJson(v)
+            });
+
+            $("#jstree1").bind("delete_node.jstree", function(e, data) {
+                var v = $(this).jstree(true).get_json('#', {flat:true});
+
+                createJson(v)
+            });
+
+
+
+            function createJson(v)
+            {
+                ArrayOfGroups = []
+                for(var i=0; i<v.length; i++)
+                {
+                    if (v[i].type=="group")
+                    {
+                        if(v[i].id != "createGroup")
+                        {
+                            ArrayOfQuestions = {"type": v[i].type, "id": v[i].id, "children": []}
+                            for (var y = i + 1; y < v.length; y++) {
+                                if (v[y].type == "group")
+                                    y = v.length + 1
+                                else
+                                    ArrayOfQuestions["children"].push({"type": v[y].type, "id": v[y].id})
+                            }
+                            ArrayOfGroups.push(ArrayOfQuestions)
+                        }
+                    }
+                }
+
+                $("#nestable-output").val(JSON.stringify(ArrayOfGroups))
+                $("#formFoSendInformation").css('display','initial')
+                $("#form_section").css('display','none')
+                refreshTheQuestions()
+
+            }
+
+            $('#jstree2').jstree({
+                'core': {
+                    'check_callback': function(operation, node, node_parent, node_position, more) {
+                        if(node.parent == "#"){
+                            return false;
+                        }
+
+                        if(node_parent.parent == null || node_parent.parents.length >1 || node.li_attr["data-jstree"].search('youCanDelete') != -1)
+                            return false;
+                    }
+                },
+                'plugins': ['types', 'dnd','search'],
+                'types' : {
+                    'default': {
+                        'icon': 'fa fa-folder'
+                    }
+                },
+                'search':{
+                    'case_sensitive': false,
+                    'show_only_matches': true
+                }
+
+            });
+
+            $("#filterjstree2").keyup(function (){
+                var searchString = $(this).val();
+                $("#jstree2").jstree('search', searchString);
+            });
+
+            $("#jstree2").bind("copy_node.jstree", function(e, data) {
+                data.instance.set_id(data.node, data.original.id);
+            });
+
+            var timeNumber = 0;
+            function refreshTheQuestions() {
+
+                {% if languageActive %}
+                    var URL = '{{ request.route_url('registrySaveChanges', user=activeProject["owner"].user_name, project=activeProject.project_cod,_query={'language': languageActive}) }}'
+                {% else %}
+                    var URL = '{{ request.route_url('registrySaveChanges', user=activeProject["owner"].user_name, project=activeProject.project_cod) }}'
+                {% endif %}
+
+                $.ajax({
+                    url: URL,
+                    datatype: "json",
+                    type: "POST",
+                    data: {
+                        "csrf_token": '{{ request.session.get_csrf_token() }}',
+                        "neworder": $("#nestable-output").val(),
+                    },
+                    success: function (respuesta) {
+                        toastr.success("Form correctly updated");
+                        $("#htmlForPreview").html("")
+                        $("#htmlForPreview").html('<div width="100%" style="text-align:center"> <img alt="image" src="{{ request.url_for_static('gif/loading.gif') }}" style="height: 200px; width: 200px"/> </div>');
+                        setTimeout(() => {  $("#htmlForPreview").html(respuesta) }, 1000);
+                        if (timeNumber == 0) {
+                            showScrollInPreview();
+                        }
+                        timeNumber = timeNumber + 1;
+                    },
+                    error: function (respuesta) {
+                        toastr.error("There was a problem updating the form");
+                    }
+                });
+            }
+
+            $("#btnCancelSection").click(function () {
+                $("#form_section").css("display","none")
+                cleanInputs()
+                cleanBtns()
+
+            })
+
+        });
+
+        function createSection() {
+            cleanBtns()
+            cleanInputs()
+            $("#btnNewSection").css('display','initial')
+            $("#form_section").css("display","initial")
+            $("#txt_group_name").focus();
+        }
+
+        function showHelp()
+        {
+            var tour = new Tour({
+                steps: [
+                        {
+                            element: "#div_for_help",
+                            title: "{{ _("Prepare participant registration") }}",
+                            content: "<b>{{ _("Add questions to the form") }}:</b><br>{{ _("Move the question from left to right.") }}<br><br><b>{{ _("Delete questions from the form") }}:</b><br>{{ _("Move the question from right to left.") }}<img src='{{ request.url_for_static('gif/move_questions.gif') }}' />",
+                            placement: "bottom"
+                        }
+                       ],
+                template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:814px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+                backdrop: true,
+                backdropContainer: 'body'
+            });
+
+            // Initialize the tour
+            tour.init();
+            tour.restart();
+        }
+
+        function showScrollInPreview()
+        {
+            var tour = new Tour({
+                steps: [
+                        {
+                            element: "#htmlForPreview",
+                            title: "{{ _("Preview") }}",
+                            content: "<p>{{ _("In case you cannot see all the questions, you can scroll down in this section to see the new questions added.") }}</p>",
+                            placement: "top"
+                        }
+                       ],
+                template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:400px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+            });
+
+            // Initialize the tour
+            tour.init();
+            tour.restart();
+        }
+
+        function cleanBtns()
+        {
+            $(".btnsSection").css('display','none')
+        }
+
+        function cleanInputs()
+        {
+            $(".inputSection").val("")
+        }
+
+        function seeSection(id)
+        {
+
+            var URL = "{{ request.route_url('getRegistrySection', user=activeProject["owner"].user_name, project=activeProject.project_cod, section="__sectionid__") }}"
+            URL = URL.replace("__sectionid__", id)
+
+            $.get(URL, function (dataJson, status) {
+
+                var currentNode = $("#jstree1").jstree().get_node("GRP"+id);
+                var childrens = $("#jstree1").jstree("get_children_dom",currentNode);
+
+                cleanBtns()
+                $("#txt_group_name").val(dataJson["section_name"])
+                $("#txt_group_desc").val(dataJson["section_content"])
+                $("#txt_section_id").val(id)
+
+                $("#btnUpdateSection").css('display','initial')
+
+                canDelete = true
+                for(var i=0;i<childrens.length;i++)
+                {
+                    if(JSON.parse(childrens[i].attributes[2].nodeValue)["icon"].search('youCanDelete') != -1)
+                    {
+                        canDelete = false
+                    }
+                }
+
+                if(canDelete == true)
+                {
+                    $("#btnDeleteSection").css('display', 'initial')
+                }
+
+                $("#form_section").css("display","initial")
+                $("#txt_section_id").focus()
+
+            });
+        }
+
+        $("#btnCancelSection").click(function () {
+            cleanBtns();
+            cleanInputs();
+        });
+
+        function showDeleteSection()
+        {
+            var urlAction = '{{ request.application_url }}/user/{{ activeProject["owner"].user_name }}/project/{{activeProject.project_cod}}/registry/'+$("#txt_section_id").val()+'/delete'
+            showDelete(urlAction,'{{ _("Do you really want to delete this section?") }}','{{ request.session.get_csrf_token() }}')
+        }
+
+        function actionSection(action)
+        {
+            $.ajax({
+                url: '{{ request.route_url('registrySectionActions',user=activeProject["owner"].user_name, project=activeProject.project_cod) }}',
+                datatype: "json",
+                type: "POST",
+                data: {
+                    "csrf_token": '{{ request.session.get_csrf_token() }}',
+                    "action": action,
+                    "section_name": $("#txt_group_name").val(),
+                    "section_content": $("#txt_group_desc").val(),
+                    "group_cod":$("#txt_section_id").val(),
+                },
+                success: function (respuesta) {
+
+                    if(respuesta['result'] == "error")
+                    {
+                        toastr.error(respuesta['error']);
+                    }else{
+                        //toastr.success(respuesta['success']);
+                        location.href = window.location.href;
+                    }
+                },
+                error: function (respuesta) {
+                    toastr.error("Error:"+ respuesta);
+                }
+            });
+
+        }
+
+        $("#formSection").submit(function (e) {
+            e.preventDefault();
+            if ( e.originalEvent.submitter.id != "btnCancelSection" & e.originalEvent.submitter.id != "btnDeleteSection")
+                actionSection(e.originalEvent.submitter.id);
+        });
+
+
+    </script>
+
+    {% include 'snippets/loading.jinja2' %}
+
+{% endblock pagecontent %}
+

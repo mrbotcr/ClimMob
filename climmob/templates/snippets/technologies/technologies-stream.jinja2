@@ -1,0 +1,59 @@
+
+{% for technology in UserTechs %}
+    <tr id="tech{{ technology.tech_id}}" {% if not checkbox %}onclick='showVarietiesInTechnology("{{ technology.tech_id }}","{{ technology.user_name }}")'{% else%}{%if not isAlias%}{% if checked%}onclick='showVarieties({{technology.tech_id}})'{% else %}onclick='showLibraryVarieties({{technology.tech_id}})'{%endif%}{%endif%}{% endif %} {% if showCreator %}title="{{ _("Click to display technology options") }}" {% endif %}>
+        <td style="vertical-align: middle" >
+            <span>
+            {% if isAlias %}
+                {% if checkbox %}
+                    <i class="pull-left" style="border: initial; padding: initial">
+                        <input type="checkbox" {% if onlySee %} disabled {% endif %} {% if checked %}checked {%endif%} class="{% if isAlias%}i-checksAlias{% if extra%}Extra{%endif%}{% else %}i-checks{% endif %}" id="element_{%if isAlias%}{{technology.alias_id}}{%else%}{{ technology.tech_id }}{%endif%}_{% if checked %}exists{% else %}new{% endif %}">
+                    </i>&nbsp;
+                {% endif %}
+
+                <p  style="margin: 0px; display: inline-block">
+                    {% if showBold %}<b>{% endif %}
+                        {{ technology.alias_name }}
+                    {% if showBold %}</b>{% endif %}
+                </p>
+
+                {% if extra %}
+                    ({{ _("only for this project") }})
+                {%endif%}
+            {% else%}
+
+                <p  style="margin: 0px; display: inline-block">
+                    {% if showBold %}<b>{% endif %}
+                    {% if yourLib %}<em>{% endif %}
+                        {{ technology.tech_name }}
+                    {% if yourLib%}</em>{% endif %}
+                    {% if showBold %}</b>{% endif %}
+                </p>
+
+            {% endif %}
+
+            {% if showCreator %}
+                <p class="by" style="margin: 0px; color: #1ab394; font-size: 10px; display: inline-block">&nbsp;{{ _("by") }} {{ technology.user_fullname[0:12] }}{% if technology.user_fullname|length > 12 %}...{% endif %}</p>
+            {% endif %}
+            </span>
+        </td>
+        {% if not isAlias %}
+            {% if checkbox %}
+                <td style="vertical-align: middle; text-align: center">
+                    {{ technology.quantityAlias }}
+                </td>
+            {% endif %}
+            <td style="vertical-align: middle; text-align: center" >
+                {% if technology.quantity > 0 %}
+                    {{ technology.quantity }}
+                {% endif %}
+            </td>
+{#            <td style="vertical-align: middle">#}
+{#            {% if color == "#000000" %}#}
+{#                <a class="btn btn-default ">{{ _("Assign technology options") }}</a>#}
+{#            {% else %}#}
+{#                <a class="btn btn-default btn-circle" style="background-color: {{ color }}"><i class="fa fa-list-ul" style="color: white"></i></a>#}
+{#            {% endif %}#}
+{#            </td>#}
+        {% endif %}
+    </tr>
+{% endfor %}

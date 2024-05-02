@@ -1,0 +1,27 @@
+
+
+
+<li style="padding: 4px 20px">
+    <a href="{{ request.route_url('dashboard', _query={'user':project["owner"].user_name, "project": project.project_cod}) }}">
+
+        <h4>{{ project.project_name|truncate(35) }}</h4>
+
+        {% if project.progress.regsubmissions == 0 %}
+            <div class="small">{{ _("Registration not yet started") }}</div>
+        {% else %}
+            {% if project.progress.regsubmissions == 1 %}
+                <div class="small">{{ _("Registration ongoing") }}</div>
+            {% else %}
+                {% if project.progress.regsubmissions == 2 %}
+                    {% if project.progress.assessments|length == 0 %}
+                        <div class="small">{{ _("Registration closed") }}</div>
+                    {% else %}
+                        <div class="small">{{ _("Trial data collection / analysis ongoing") }}</div>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endif %}
+
+        <div class="small" title="{{ request.h.readble_date(project.project_creationdate) }}">{{ _("Project created") }}: {{ request.h.humanize_date(project.project_creationdate) }}</div>
+    </a>
+</li>

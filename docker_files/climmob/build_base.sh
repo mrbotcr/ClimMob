@@ -1,0 +1,1 @@
+sudo docker build --no-cache --rm -t mrbotcr/climmob_base:20240105 -f ./climmob_base.Dockerfile .

@@ -1,0 +1,158 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Project profile") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','switch' %}
+    {% cssresource request,'coreresources','tags' %}
+    {% cssresource request,'coreresources','chosen' %}
+    {% cssresource request,'coreresources','icheck' %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','tour' %}
+    {% cssresource request,'coreresources','switchery' %}
+    {% cssresource request,'coreresources','select2' %}
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','switch' %}
+    {% jsresource request,'coreresources','addproject' %}
+    {% jsresource request,'coreresources','bootstrapmaxlength' %}
+    {% jsresource request,'coreresources','chosen' %}
+    {% jsresource request,'coreresources','icheck' %}
+    {% jsresource request,'coreresources','sweet' %}
+    {#    {% jsresource request,'coreresources','delete' %}#}
+    {% jsresource request,'coreresources','toastr' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','switchery' %}
+    {% jsresource request,'coreresources','select2' %}
+    {% jsresource request,'coreresources','tour' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set _title= _("Project profile")%}
+    {% set _linkWiki="https://climmob.net/blog/wiki/3-create-a-new-project/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+    {% if newproject == False %}
+        {% if error_summary %}
+            {% for key, error in error_summary.items() %}
+                <div class="alert alert-danger alert-dismissable">
+                    <button aria-hidden="true" data-dismiss="alert" class="close" type="button">×</button>
+                    {{ error }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form id="formModify" method="post" class="form-horizontal" action="{{ request.path }}">
+            <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+            {% block newprjform %}
+                {% set edit=True%}
+                {% if activeProject.access_type != 4%}
+                    {% set permissionForChanges=True%}
+                {% else %}
+                    {% set permissionForChanges=False%}
+                {% endif %}
+                {% set dataworking=data %}
+                {% set allowTemplate=True %}
+                {% set editTemplate=True %}
+                {% set showNote=True %}
+                {% include 'snippets/project/project_form.jinja2' %}
+
+                {% if permissionForChanges %}
+                    <div class="row">
+                        <div class="col-md-4">
+                            <a class="btn btn-danger pull-left" onclick="showDelete('{{ request.route_url('deleteproject', user=activeProject["owner"].user_name, project=activeProject["project_cod"]) }}','{{ _("Do you really want to delete this project?") }}','{{ request.session.get_csrf_token() }}','{{ request.route_url('dashboard') }}')"><i class="fa fa-trash"></i> {{ _("Delete project") }}</a>
+                        </div>
+                        <div class="col-md-4 text-center">
+    {#                        <a class="btn btn-success" style="background-color: darkgrey" href='{{ request.route_url('cloneProject') }}'>{{ _("Clone") }}</a>#}
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" name="btn_addNewProject" id="btn_addNewProject" class="btn btn-primary pull-right">{{ _("Save and close") }}</button>
+                        </div>
+                    </div>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                {% endif %}
+            {% endblock newprjform %}
+
+            <br>
+            <br>
+            <br>
+        </form>
+
+        {% include 'snippets/languages/addMoreLanguages.jinja2' %}
+
+        <script>
+            {% if activeUser.login == "bioversity" %}
+                var elem_project_template = document.querySelector('#project_template');
+                var ckb_project_template = new Switchery(elem_project_template, { color: '#1AB394' });
+            {% endif %}
+
+            $(document).ready(function () {
+
+                $('.i-checks').iCheck({
+                    radioClass: 'iradio_square-green',
+                });
+
+                {% if activeUser.login == "bioversity" %}
+
+                    var valueOfProjectTemplate = "{{ data["project_template"] }}"
+
+                    if (valueOfProjectTemplate == "0") {
+                        //$("[name='project_template']").bootstrapSwitch('state', false);
+                        setSwitchery(ckb_project_template, false);
+                    }else {
+                        //$("[name='project_template']").bootstrapSwitch('state', true);
+                        setSwitchery(ckb_project_template, true);
+                    }
+
+                {% else %}
+
+                    $('input[name="project_registration_and_analysis"]').on('ifChecked', function(event){
+                        var URL = "{{ request.route_url('getTemplatesByTypeOfProject', typeid="__typeid__") }}"
+                        URL = URL.replace("__typeid__", this.value)
+
+                        $.get(URL, function (dataJson, status) {
+                            $("#usingTemplate").empty();
+                            $('#usingTemplate').trigger("chosen:updated");
+                            $("#usingTemplate").append("<option value=''>{{ _("Select a template") }}</option>");
+                            for (var i = 0; i < dataJson.length; i++){
+                                var info = dataJson[i]
+                                $("#usingTemplate").append("<option value='"+ info.project_id+"'>"+ info.project_name+"</option>");
+                            }
+                            $('#usingTemplate').trigger("chosen:updated");
+                        });
+                    });
+
+                {% endif %}
+
+            })
+
+
+
+            $("#formModify").submit(function (e) {
+                $(".radiosRA").prop('disabled', false);
+            });
+
+            function setSwitchery(switchElement, checkedBool)
+            {
+                if((checkedBool && !switchElement.isChecked()) || (!checkedBool && switchElement.isChecked())) {
+                    switchElement.setPosition(true);
+                }
+            }
+
+        </script>
+        <script>
+            {% block js_script_extra %}
+
+            {% endblock js_script_extra %}
+        </script>
+    {% endif %}
+{% endblock pagecontent %}
+

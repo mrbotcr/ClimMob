@@ -1,0 +1,246 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Prepare trial data collection") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','switch' %}
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','sweet' %}
+    {% jsresource request,'coreresources','toastr' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','switch' %}
+    {% jsresource request,'coreresources','assessment_form' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set _title= _("Prepare trial data collection")%}
+    {% set _linkWiki="https://climmob.net/blog/wiki/prepare-data-collection/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+
+    <div class="row" style="text-align: center">
+        <div class="col-lg-12">
+            <div class="ibox-content" style="padding: 10px">
+                <p style="margin: 0px">
+                    {{ _("Here you will set the different data collection moments for the on-farm evaluation that participants will carry out, alongside with the questions that will be asked at each mome. It is important to know which traits will you evaluate in the selected technology options? When will each trait be evaluated during the planting cycle?") }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% set onlySee = False %}
+
+    {% if activeProject["access_type"] in [4] %}
+        {% set onlySee = True %}
+    {% endif %}
+
+    <div class="row">
+        {% if not onlySee %}
+
+            <div class="col-lg-6 ">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>{{ _("Trial data collection moment details") }}</h5>
+                        <div class="ibox-tools">
+                            <button id="btn_cancel_assessment"  class="btn btn-xs btn-default pull-right " ><i class="fa fa-undo"></i>  {{ _("Clear form") }}</button>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+
+                        {% include 'snippets/error.jinja2' %}
+
+                        <div class="error-desc">
+                            <form class="form-horizontal formElement" role="form" method="post" action="{{ request.path }}">
+                                <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                                {% set final_visible=new_available %}
+                                {% include 'snippets/project/assessment/assessmentform.jinja2' %}
+                                <button class="btn btn-primary pull-right btnsAssesment" type="submit" name="btn_add_ass" id="btn_add_ass"> {{ _('Add') }}</button>
+                                <button class="btn btn-primary pull-right btnsAssesment" type="submit" name="btn_modify_ass" id="btn_modify_ass" style="display: none"> {{ _('Save') }}</button>
+                            </form>
+                            <br>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        <div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("Active trial data collection moments") }} </h5>
+                    <div class="ibox-tools">
+                    </div>
+                </div>
+                <div class="ibox-content animated fadeInRightBig" >
+                    {% if assessments %}
+                        <table class="table table-striped">
+                            <tbody>
+                            <tr>
+                                <th class="text-center">{{ _('Trial data collection moment') }}</th>
+
+                                {% block dataExchange_column_intervaldays %}
+
+                                    <th class="text-center">{{ _('Interval in days') }}</th>
+
+                                {% endblock dataExchange_column_intervaldays %}
+
+                                {% block dataExchange_column_event %}
+
+                                {% endblock dataExchange_column_event %}
+
+                                <th class="text-center" style="min-width: 310px"></th>
+                            </tr>
+
+                            {% for assessment in assessments %}
+                                <tr>
+                                    {% if assessment.totquestions > 0 %}
+                                        <td class="text-center" style="vertical-align: middle">
+                                            {{ assessment.ass_desc }}
+                                            {% block rhomis_number_of_questions scoped%}
+                                                <span class="label label-success" style="display: inline-block; margin-top: 3px">{{ assessment.totquestions }} {{ request.h.pluralize(_("question"),assessment.totquestions) }}</span>
+                                            {% endblock rhomis_number_of_questions %}
+                                            {% if assessment.ass_final == 1 %}
+                                                <span class="label label-danger"  style="display: inline-block; margin-top: 3px">{{ _("Overall performance") }}</span>
+                                                <span class="label label-danger" title="You need to check this" style="display: inline-block; margin-top: 3px">{{ _("Comparison with check") }}</span>
+                                            {% endif %}
+                                        </td>
+                                    {% else %}
+                                        <td class="text-center" style="vertical-align: middle"> {{ assessment.ass_desc }}
+                                            <span class="label label-danger" style="display: inline-block; margin-top: 3px">0 {{ _("questions") }}</span> {% if assessment.ass_final == 1 %}<span class="label label-danger" title="You need to check this" style="display: inline-block; margin-top: 3px">{{ _("Overall performance") }}</span> <span class="label label-danger"  style="display: inline-block; margin-top: 3px">{{ _("Comparison with check") }}</span>{% endif %}</td>
+                                    {% endif %}
+
+                                    {% block dataExchange_row_intervaldays scoped%}
+
+                                        <td class="text-center" style="vertical-align: middle"> {{ assessment.ass_days }}</td>
+
+                                    {% endblock dataExchange_row_intervaldays%}
+
+                                    {% block dataExchange_row_event scoped%}
+
+                                    {% endblock dataExchange_row_event %}
+
+                                    <td class="text-center" style="vertical-align: middle">
+                                        {% block rhomis_BtnSeeAssessment scoped%}
+                                            <a class="btn btn-default " href="{{ request.route_url('assessmentdetail', user=activeProject["owner"].user_name, project=activeProject.project_cod,assessmentid=assessment.ass_cod) }}" title="{{ _("Add questions") }}"><i class="fa fa-list-ul"></i> {{ _("Add questions") }}</a>
+                                        {% endblock rhomis_BtnSeeAssessment  %}
+
+                                        {% if assessment.ass_status == 0 %}
+                                            {% if not onlySee %}
+                                                <a class="btn btn-warning " onclick='seeAssessment("{{ assessment.ass_cod|string }}")' title="{{ _("Edit trial data collection") }}"><i class="fa fa-pencil"></i> {{ _("Edit") }}</a>
+                                                <button class="btn btn-danger "  onclick="showDelete('{{ request.route_url('deleteassessment', user=activeProject["owner"].user_name, project=activeProject.project_cod,assessmentid=assessment.ass_cod) }}','{{ _("Do you really want to delete this trial data collection moment?") }}','{{ request.session.get_csrf_token() }}')" title="{{ _("Delete data collection")}}"><i class="fa fa-trash"></i> {{ _("Delete") }}</button>
+                                            {% endif %}
+                                        {% else %}
+                                            {% if assessment.ass_status == 1 %}
+                                                {{ _('On going') }}
+                                            {% endif %}
+                                            {% if assessment.ass_status == 2 %}
+                                                {{ _('Closed') }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div style="width: 100%; text-align: center">
+                            <h3><b>{{ _("There are no trial data collection moments.") }}</b></h3>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            {% if not new_available %}
+                $("#check_for_final").css("display","none")
+            {% else %}
+                $("#ckb_final").bootstrapSwitch('state', false);
+            {% endif %}
+
+            {% block extra_document_ready %}
+
+            {% endblock extra_document_ready %}
+        });
+
+        $(".formElement").bind("keypress", function(e) {
+            if (e.keyCode == 13) {
+                toastr.error("{{ _("Please click the button.") }}");
+                return false;
+            }
+        });
+
+        //function seeAssessment(code, desc, days, final) {
+        function seeAssessment(code) {
+            var URL= "{{ request.route_url('getAssessmentDetails',user=activeProject["owner"].user_name, project=activeProject.project_cod, assessmentid="__assessmentid__") }}"
+            URL= URL.replace("__assessmentid__", code)
+            data = {};
+
+            $.get(URL, function(dataJson, status) {
+                cleanButtons();
+                cleanInputs();
+                $("#ass_cod").val(code);
+                $("#ass_desc").val(dataJson["ass_desc"]);
+                $("#ass_days").val(dataJson["ass_days"]);
+                if (dataJson["ass_final"] == 1) {
+                    $("#ckb_final").bootstrapSwitch('state', true);
+                    $("#check_for_final").css("display", "block")
+                }
+
+                {% block dataExchange_set_events %}
+
+                {% endblock dataExchange_set_events %}
+
+                $("#btn_modify_ass").css("display", "block")
+            })
+        }
+
+        $("#btn_cancel_assessment").click(function () {
+            cleanButtons()
+            cleanInputs()
+            $("#btn_add_ass").css('display','initial')
+        })
+
+        function cleanButtons() {
+            $(".btnsAssesment").css("display","none")
+        }
+
+        function cleanInputs() {
+            $("#ass_desc").val("")
+            $("#ass_days").val("")
+            $("#ckb_final").bootstrapSwitch('state',false);
+            {% block rhomis_cleanInputs %}
+
+            {% endblock rhomis_cleanInputs %}
+
+            {% if not new_available %}
+                $("#check_for_final").css("display","none")
+            {% else %}
+                $("#check_for_final").css("display","block")
+            {% endif %}
+
+            {% block dataExchange_clean_events %}
+
+            {% endblock dataExchange_clean_events %}
+
+
+        }
+
+
+    </script>
+
+    {% include 'snippets/loading.jinja2' %}
+
+{% endblock pagecontent%}
+

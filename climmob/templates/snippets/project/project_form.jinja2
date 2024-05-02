@@ -1,0 +1,358 @@
+<div class="row">
+    <div class="col-md-6">
+        <div class="col-md-12" style="padding: 0px">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("1. General information") }}</h5>
+
+                </div>
+                <div class="ibox-content">
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Project Name") }}</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="newproject_name" required oninvalid="this.setCustomValidity('{{ _("Write the project name.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %} name="project_name" value="{{ dataworking.project_name }}" maxlength="30">
+                            <p style="margin: 10px 0 0">{{ _("e.g. Bean Honduras 2019 season1") }}</p>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Project ID") }}</label>
+                        <div class="col-sm-8">
+                            <input class="form-control" id="newproject_code" required oninvalid="this.setCustomValidity('{{ _("Write the project ID.") }}')" onchange="this.setCustomValidity('')" {% if edit %} disabled {% endif %} name="project_cod" value="{{ dataworking.project_cod }}" maxlength="10">
+                            <p style="margin: 10px 0 0">{{ _("e.g. BH19") }}</p>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Description") }}</label>
+                        <div class="col-sm-8">
+                            <p style="margin: 10px 0 0">{{ _("Add more details about the project") }}</p>
+                            <textarea class="form-control" name="project_abstract" required oninvalid="this.setCustomValidity('{{ _("Write the description.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %} id="newproject_description">{{ dataworking.project_abstract }}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Keywords") }}</label>
+                        <div class="col-sm-8">
+                            <input class="tagsinput form-control" name="project_tags" id="newproject_tag" type="text" data-role="tagsinput" value="{{ dataworking.project_tags }}"  oninvalid="this.setCustomValidity('{{ _("Write the tags.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %}>
+                            <span class="help-block m-b-none">{{ _("Press comma after every word to add the tag") }}.</span>
+                            <p style="margin: 10px 0 0">{{ _("e.g. beans,honduras") }}</p>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Trial coordinator") }}</label>
+                        <div class="col-sm-8"><input class="form-control" id="newproject_principal_investigator" required oninvalid="this.setCustomValidity('{{ _("Write the principal investigator.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %} name="project_pi" value="{{ dataworking.project_pi }}"></div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Email address") }}</label>
+                        <div class="col-sm-8"><input type="email" class="form-control" id="newproject_mail_address" required oninvalid="this.setCustomValidity('{{ _("Write the email address.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %} name="project_piemail" value="{{ dataworking.project_piemail }}"></div>
+                    </div>
+                    <br>
+                    {% block general_information_extra %}
+
+                    {% endblock general_information_extra %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12" style="padding: 0px">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("2. Geographic information") }}</h5>
+                </div>
+                <div class="ibox-content">
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Country") }}</label>
+                        <div class="col-sm-8">
+
+                            <select id="project_cnty" name="project_cnty" class="form-control chosen-select" tabindex="2" required oninvalid="this.setCustomValidity('{{ _("Select one country.") }}')" onchange="this.setCustomValidity('')" {% if not permissionForChanges %} disabled {% endif %}>
+                                <option value="">{{ _("Select one country") }}</option>
+                                {% for country in countries %}
+                                    <option value="{{ country.code }}" {% if country.code == dataworking.project_cnty %}selected{% endif %} >{{ country.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% block geo_information_extra %}
+
+                    {% endblock geo_information_extra %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="col-md-12" style="padding: 0px">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("3. Participants and technology options labels") }}</h5>
+                </div>
+                <div class="ibox-content">
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Number of participants in the project") }}</label>
+                        <div class="col-sm-8"><input type="number" min="10" {% if request.registry.settings.get("projects.limit", "false") == "true" and request.registry.settings.get("project.maximumnumberofobservations", 0)|int > 10%}max="{{ request.registry.settings.get("project.maximumnumberofobservations", 0)|int }}"{% endif %} class="form-control" id="newproject_numobs" required="" {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if not permissionForChanges %} disabled {% endif %} {% if dataworking.project_createpkgs == 2 %} readonly {% endif %} name="project_numobs" value="{{ dataworking.project_numobs }}"></div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Number of technology options that each participant compares") }}</label>
+                        <div class="col-sm-8"><input type="number" class="form-control" id="newproject_numcom" required="" readonly {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if not permissionForChanges %} disabled {% endif %} name="project_numcom" value="{{ dataworking.project_numcom }}"></div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+
+                    <p>{{ _("Name for each of the 3 technology options that each participant compares") }}:</p><br>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Technology option #1") }}</label>
+                        <div class="col-sm-8"><input class="form-control" id="project_label_a" required oninvalid="this.setCustomValidity('{{ _("Write the label for the option.") }}')" onchange="this.setCustomValidity('')" {% if dataworking.project_regstatus != 0 %} readonly {% endif %} {% if not permissionForChanges %} readonly {% endif %} name="project_label_a" value="{{ dataworking.project_label_a }}"></div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Technology option #2") }}</label>
+                        <div class="col-sm-8"><input class="form-control" id="project_label_b" required oninvalid="this.setCustomValidity('{{ _("Write the label for the option.") }}')" onchange="this.setCustomValidity('')" {% if dataworking.project_regstatus != 0 %} readonly {% endif %} {% if not permissionForChanges %} readonly {% endif %} name="project_label_b" value="{{ dataworking.project_label_b }}"></div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">{{ _("Technology option #3") }}</label>
+                        <div class="col-sm-8"><input class="form-control" id="project_label_c" required oninvalid="this.setCustomValidity('{{ _("Write the label for the option.") }}')" onchange="this.setCustomValidity('')" {% if dataworking.project_regstatus != 0 %} readonly {% endif %} {% if not permissionForChanges %} readonly {% endif %} name="project_label_c" value="{{ dataworking.project_label_c }}"></div>
+                    </div>
+
+                    {% block participants_extra %}
+
+                    {% endblock participants_extra %}
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="col-md-12" style="padding: 0px">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("4. Type of project") }}</h5>
+                </div>
+                <div class="ibox-content">
+
+                    <div class="form-group" style="margin: 5px">
+                        <label class="col-sm-4 control-label">{{ _("Type") }}</label>
+                        <div class="col-sm-8">
+                            <div class="i-checks" ><label style="font-weight: initial; font-size: 14px"> <input class="radiosRA" type="radio" name="project_registration_and_analysis" value="0" {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if dataworking["project_registration_and_analysis"] == 0 %}checked{% endif %} {% if not permissionForChanges %} disabled {% endif %}> <i></i> {{ _("On-farm testing") }} </label></div>
+                            <br>
+                            <div class="i-checks"><label style="font-weight: initial; font-size: 14px"> <input class="radiosRA" type="radio" name="project_registration_and_analysis" value="1" {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if dataworking["project_registration_and_analysis"] == 1 %}checked{% endif %} {% if not permissionForChanges %} disabled {% endif %}> <i></i> {{ _("Consumer/Market testing") }} </label></div>
+                        </div>
+                    </div>
+
+                    {% if allowTemplate %}
+                        {% if activeUser.login == "bioversity" %}
+                            <div class="hr-line-dashed"></div>
+
+                            <div class="form-group" style="margin: 5px">
+                                <label class="col-sm-4 control-label">{{ _("Do you want to define this project as a template ?") }}</label>
+                                <div class="col-sm-8">
+                                    <input type="checkbox" id="project_template" name="project_template" data-on-color="success" data-off-color="danger" data-on-text="{{ _('Yes') }}" data-off-text="{{ _('No') }}" >
+                                </div>
+                            </div>
+                        {% else %}
+                            {% if editTemplate %}
+                                <div class="hr-line-dashed"></div>
+
+                                <div class="form-group" style="margin: 5px" id="div_of_templates">
+                                    <label class="col-sm-4 control-label">{{ _("Do you want to create your project from a template ?") }}</label>
+                                    <div class="col-sm-8">
+                                        <table style="width: 100%">
+                                            <tr>
+                                                <td style="vertical-align: middle; text-align: center">
+                                                    <a class="btn btn-success btn-rounded  btn-xs" style="color: white" onclick="showHelpTem()"><i class="fa fa-question-circle"></i> {{  _("Show help") }}</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="width: 80%">
+                                                    <select id="usingTemplate" name="usingTemplate" class="form-control chosen-select" {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if not permissionForChanges %} disabled {% endif %} style="width:0px;" >
+                                                        <option value="">{{ _("Select a template") }}</option>
+                                                        {% for template in listOfTemplates %}
+                                                            <option value="{{ template.project_id }}" {% if dataworking["usingTemplate"] == template.project_id %}selected{% endif %}>{{ template.project_name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        {% if showNote %}
+                                            <br>
+                                            <br>
+                                            <p><b>{{ _("Note") }}: </b>{{ _("If you select a new template, your current forms will be replaced by the template forms.") }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+
+                    {% block type_project_extra %}
+
+                    {% endblock type_project_extra %}
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12" style="padding: 0px">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>{{ _("5. Languages") }}</h5>
+                </div>
+                <div class="ibox-content">
+
+                    <div class="form-group" style="margin: 5px" id="div_project_languages">
+
+                        <label class="col-sm-4 control-label">{{ _("Select the languages in which you want to provide the form") }}</label>
+                        <div class="col-sm-8">
+
+                            <table style="width: 100%">
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center">
+                                        <a class="btn btn-success btn-rounded  btn-xs" style="color: white" onclick="showHelpForLanguages()"><i class="fa fa-question-circle"></i> {{  _("Show help") }}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 80%">
+                                        <select data-placeholder="{{ _("Choose languages..") }}" class="chosen-select" multiple style="width:100%;" tabindex="4" name="project_languages" id="project_languages" {% if dataworking.project_regstatus != 0 %} disabled {% endif %} {% if not permissionForChanges %} disabled {% endif %}>
+                                            {% for lang in listOfLanguages %}
+                                                <option value="{{ lang.lang_code }}" {% for selectedLang in dataworking["languages"] %} {% if lang.lang_code == selectedLang["lang_code"] %}selected{% endif %} {% endfor %} {% for selectedLang in dataworking["project_languages"] %} {% if lang.lang_code == selectedLang %}selected{% endif %} {% endfor %} {% if lang.lang_code == dataworking["project_languages"] %}selected{% endif %}>{{ lang.lang_name }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        {% if showSelectStructureToClone %}
+            <div class="col-md-12" style="padding: 0px">
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>{{ _("6. Structure to be cloned") }}</h5>
+                    </div>
+                    <div class="ibox-content">
+
+                        <div class="form-group" style="margin: 5px">
+                            <input type="text" name="structureToBeCloned" id="structureToBeCloned" style="display: none" value="">
+                            <div class="i-checksbox"><label style="font-weight: initial; font-size: 14px"> <input class="checksbox" type="checkbox" id="fieldagents" > <i></i>{{ _("Field agents") }} </label></div>
+                            <div class="i-checksbox"><label style="font-weight: initial; font-size: 14px"> <input class="checksbox" type="checkbox" id="technologies" > <i></i>{{ _("Technologies") }} </label></div>
+                            <div class="i-checksbox"><label style="font-weight: initial; font-size: 14px"> <input class="checksbox" type="checkbox" id="technologyoptions" > <i></i>{{ _("Technology options") }} </label></div>
+                            <div class="i-checksbox"><label style="font-weight: initial; font-size: 14px"> <input class="checksbox" type="checkbox" id="registry" > <i></i>{{ _("Registration form") }} </label></div>
+                            {% for assessment in assessments %}
+                                <div class="i-checksbox"><label style="font-weight: initial; font-size: 14px"> <input class="checksbox" type="checkbox" id="{{ assessment.ass_cod }}" > <i></i>{{ _("Trial data collection") }}: {{ assessment.ass_desc }} </label></div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+        {% block project_section_extra %}
+
+        {% endblock project_section_extra %}
+
+    </div>
+
+</div>
+
+<script>
+    $('input#newproject_code').maxlength(
+        {
+            alwaysShow: true,
+            threshold: 0,
+            warningClass: "label label-primary",
+            limitReachedClass: "label label-danger",
+            message: ' {{ _("Used") }} %charsTyped% {{ _("of") }} %charsTotal% {{ _("chars") }}.',
+            placement: "bottom"
+        }
+    )
+
+    $('input#newproject_name').maxlength(
+        {
+            alwaysShow: true,
+            threshold: 0,
+            warningClass: "label label-primary",
+            limitReachedClass: "label label-danger",
+            message: ' {{ _("Used") }} %charsTyped% {{ _("of") }} %charsTotal% {{ _("chars") }}.',
+            placement: "bottom"
+        }
+    )
+
+    $('.chosen-select').chosen({width: "100%", max_selected_options: 4});
+
+    function showHelpTem()
+    {
+        var tourtem = new Tour({
+            steps: [
+                    {
+                        element: "#div_of_templates",
+                        title: "{{ _("Create your project from a template") }}",
+                        content: "{{ _("Templates have some predefined questions for participant registration form and trial data collection") }}",
+                        placement: "top"
+                    }
+                   ],
+            template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:760px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+            backdrop: true,
+            backdropContainer: 'body'
+        });
+
+        // Initialize the tour
+        tourtem.init();
+        tourtem.restart();
+    }
+
+    var tour2 = new Tour({
+            steps: [
+                    {
+                        element: "#div_project_languages",
+                        title: "{{ _("Define the languages for your form") }}",
+                        content: "{{ _("You can select up to 4 languages in which your users will be able to complete the information") }}<br><br>{{ _("If the corresponding languages are not in the list, click on:") }} <a class='btn btn-success btn-rounded  btn-xs modalLang' style='color: white' data-toggle='modal' data-target='#languagesModal'><i class='fa fa-plus'></i> {{ _("Add more languages") }}</a>",
+                        placement: "top"
+                    }
+                   ],
+            template: "<div class='popover tour' style='border-color: #23c6c8; max-width: none; width:760px'><div class='arrow' ></div><h3 class='popover-title btn-info'></h3><div class='popover-content'></div><div class='popover-navigation'> <button class='btn btn-sm btn-danger' data-role='end'><i class='fa fa-close'></i> {{ _("Close") }}</button> </div>",
+            backdrop: true,
+            backdropContainer: 'body'
+        });
+
+    function showHelpForLanguages(){
+
+        show_carga = false
+        // Initialize the tour
+        tour2.init();
+        tour2.restart();
+    }
+
+    $('#languagesModal').on('show.bs.modal', function () {
+        tour2.end();
+        $("html, body").animate({ scrollTop: 0 });
+    })
+
+</script>

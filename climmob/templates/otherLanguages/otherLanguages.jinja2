@@ -1,0 +1,182 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Local languages library") }}</title>
+{% endblock title %}
+
+{% block css %}
+    {% cssresource request,'coreresources','metro' %}
+    {% cssresource request,'coreresources','sweet' %}
+    {% cssresource request,'coreresources','toastr' %}
+    {% cssresource request,'coreresources','switch' %}
+    {% cssresource request,'coreresources','select2' %}
+    {% cssresource request,'coreresources','switchery' %}
+    {% cssresource request,'coreresources','tour' %}
+    {% cssresource request,'coreresources','icheck' %}
+
+{% endblock css %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','sweet' %}
+    {% include 'snippets/delete.jinja2' %}
+    {% jsresource request,'coreresources','switch' %}
+    {% jsresource request,'coreresources','toastr' %}
+    {% jsresource request,'coreresources','select2' %}
+    {% jsresource request,'coreresources','switchery' %}
+    {% jsresource request,'coreresources','tour' %}
+    {% jsresource request,'coreresources','icheck' %}
+
+{% endblock topScripts %}
+
+{% block pageheading %}
+    {% set svgOfTranslations=True %}
+    {% set _title= _("Local languages") %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/languages/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock %}
+
+{% block pagecontent %}
+
+    <style>
+
+    .nav-tabs .nav-item.show .nav-link, .nav-tabs .nav-link.active {
+      color: #495057;
+      background-color: #fff;
+      border-color: #dee2e6 #dee2e6 #fff;
+    }
+
+    </style>
+
+    <div class="row">
+        <div class="col-md-12 " >
+            <div class="ibox" >
+                <div class="ibox-title" >
+                    <h5>{{ _("Local languages") }}</h5>
+
+                    <div class="ibox-tools">
+                        <a class="btn btn-success btn-rounded  btn-xs modalLang" style="color: white" data-toggle="modal" data-target="#languagesModal"><i class="fa fa-plus"></i> {{ _("Add more languages") }}</a>
+                    </div>
+                </div>
+                <div class="ibox-content" >
+                    <div class="row">
+
+                        <div class="col-md-12" >
+                            <input type="hidden" name="csrf_token" value="{{ request.session.get_csrf_token() }}">
+                            <h3>{{ _("Indications") }}</h3>
+                            <p>1. {{ _("The following is a list of texts that ClimMob uses to generate questions in ODK Collect") }}.</p>
+                            <p>2. {{ _("To see the different languages click on the corresponding tab, just above the language name. If only one language is shown, you can add more languages by clicking on “Add more languages” or going to your ClimMob user profile page.") }}</p>
+                            <p>3. {{ _("For new languages, the list of texts is shown in English. You will have to provide translations to other languages if this is not given") }}.</p>
+                            <p>4. {{ _("Some fields may be prefilled, but you can edit the texts") }}.</p>
+                            <br>
+                            <div class="tabs-container">
+                                <ul class="nav nav-tabs" role="tablist">
+                                    {% for lang in listOflanguages %}
+                                        <li><a class="nav-link {% if loop.index ==1 %}active{% endif %}" data-toggle="tab" href="#tab{{ lang.lang_code }}">{{ lang.lang_name}}</a></li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="tab-content" id="div_for_translations">
+                                    {% for lang in listOflanguages %}
+                                        <div role="tabpanel" id="tab{{ lang.lang_code }}" class="tab-pane {% if loop.index ==1 %}active{% endif %}">
+                                            <div class="panel-body">
+
+                                                <div id="table_for_{{ lang.lang_code }}"></div>
+
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                    <div class="row text-right">
+                                        <br>
+                                        <button class="btn btn-primary" name="btn_save_translations" type="submit" id="btn_save_translations" style="margin-right: 15px">{{ _("Save") }}</button>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'snippets/languages/addMoreLanguages.jinja2' %}
+
+    <script>
+
+        {% for lang in listOflanguages %}
+
+            {% if lang.lang_default ==1 %}
+                showLanguage("{{ lang.lang_code }}")
+            {% endif %}
+
+        {% endfor %}
+
+        $(".modalLang").click(function (){
+            show_carga = false;
+        })
+
+        $('.nav-tabs a').on('show.bs.tab', function(){
+
+            var language = $(this).attr("href").replace("#tab","")
+
+            if( $("#table_for_"+language).is(':empty') ) {
+                showLanguage(language)
+            }
+
+        });
+
+        function showLanguage(language){
+
+            var URL = "{{ request.route_url('getOtherLanguage', language="__language__") }}"
+            URL = URL.replace("__language__", language)
+            $.get(URL, function (table, status) {
+                $("#table_for_"+language).html("")
+                $("#table_for_"+language).html(table)
+            });
+
+        }
+
+        $("#btn_save_translations").click(function (){
+
+            var data = {
+                "csrf_token": '{{ request.session.get_csrf_token() }}'
+            }
+            $('.checksOfPhrases').each(function(i, obj) {
+
+                if($(this).is(':checked')) {
+
+                    var idCheck = $(this).attr("id")
+                    var value = $(idCheck.replace("check", "#phrase")).val()
+                    data[idCheck.replace("check", "phrase")] = value
+
+                }
+
+            });
+
+            $.ajax({
+                url: '{{ request.route_url('saveOtherLanguages') }}',
+                datatype: "json",
+                type: "POST",
+                data: data,
+                success: function (respuesta) {
+
+                    if (respuesta.status === 200) {
+                        toastr.success("{{ _("Texts stored correctly") }}")
+                        location.href = window.location.href;
+                    }else{
+                        toastr.error(respuesta.error);
+                    }
+                },
+                error: function (respuesta) {
+                    toastr.error(respuesta.error);
+                }
+            });
+
+
+        });
+
+    </script>
+
+{% endblock pagecontent %}

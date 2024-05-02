@@ -1,0 +1,44 @@
+{% if listOfLanguagesByUser %}
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>
+                    {{ _("Selected languages") }}
+                </th>
+                <th>
+                    {{ _("Main language") }}
+                </th>
+                <th>
+
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lang in listOfLanguagesByUser %}
+                <tr>
+                    <td>
+                        {{ lang.lang_name }}</td>
+                    <td>
+                        <div class="i-checks">
+                            <label>
+                                <input type="radio" class="defaultLanguage" value="{{ lang.lang_code }}" {% if lang.lang_default == 1 %}checked{% endif %} name="default_language">
+                            </label>
+                        </div>
+                    </td>
+                    <td style="text-align: right">
+                        {% if lang.used == 0 %}
+                            <button class="btn btn-danger" onclick="showDelete('{{ request.route_url('deleteUserLanguage', lang=lang.lang_code)}}','{{ _("Do you really want to delete this language?") }}','{{ request.session.get_csrf_token() }}',where='noRedirectAndAction')" type="button" title="{{ _("Delete language") }}"><i class="fa fa-trash"></i> {{ _("Delete") }}</button>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+{% else %}
+    <div class="text-center">
+        <h5>{{ _("No languages selected yet") }}</h5>
+    </div>
+{% endif %}

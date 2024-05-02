@@ -1,0 +1,49 @@
+{% extends 'dashboard/dashboard.jinja2' %}
+
+{% block title %}
+    <title>{{ _("ClimMob | Products") }}</title>
+{% endblock title %}
+
+{% block topScripts %}
+    {% jsresource request,'coreresources','toastr' %}
+{% endblock topScripts %}
+
+{% block pageheading %}
+    <input type="hidden" id="csrf_token" value="{{ request.session.get_csrf_token() }}">
+    {% if activeProject.project_name %}
+        {% set _title= _("Downloads") +" - "+activeProject.project_name %}
+    {% else %}
+        {% set _title= _("Downloads") %}
+    {% endif %}
+    {% set _linkWiki="https://climmob.net/blog/wiki/link-climmob-with-odk-collect/" %}
+    {% include 'snippets/menuheading.jinja2' %}
+{% endblock pageheading%}
+
+{% block pagecontent %}
+
+    {% if hasActiveProject %}
+        <div class="row">
+            {% if Products %}
+                <div style="width: 100%; text-align: center">
+                    <h3><b>{{ _("Push button to see if pending documents are ready.") }}</b></h3>
+                    <a class="btn btn-primary " onclick=" location.reload(); "><i class="fa fa-refresh"></i> {{ _("Refresh") }}</a>
+                    <br><br>
+                </div>
+                <div class="col-lg-12" id="content_product">
+                    {% include 'snippets/project/productsList/productsList.jinja2' %}
+                </div>
+            {% else %}
+                <div style="width: 100%; text-align: center">
+                    <h3><b>{{ _("You haven't files to download.") }}</b></h3>
+                    <a href="{{ request.route_url('generateProduct', productid="generalreport", user=activeProject["owner"].user_name,project=activeProject.project_cod, processname="generalreport") }}" class="btn btn-default" ><i class="fa fa-plus"></i> {{ _("Create project summary") }}</a>
+                </div>
+            {% endif %}
+
+        </div>
+    {% else %}
+        <div class="middle-box text-center loginscreen animated fadeInDown">
+            <h3><b>{{ _("To download files you need to have an active project.") }}</b></h3>
+        </div>
+    {% endif %}
+
+{% endblock pagecontent %}
