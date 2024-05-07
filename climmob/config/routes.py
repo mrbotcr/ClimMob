@@ -130,6 +130,7 @@ from climmob.views.Bot.bot import sendFeedbackToBot_view, readFeedback_view
 from climmob.views.Share.projectShare import (
     projectShare_view,
     API_users_view,
+    API_all_users_view,
     removeprojectShare_view,
 )
 from climmob.views.assessment import (
@@ -910,6 +911,15 @@ def loadRoutes(config):
             "api_select2_users",
             "/user/{user}/project/{project}/api/select2_user",
             API_users_view,
+            "json",
+        )
+    )
+
+    routes.append(
+        addRoute(
+            "api_select2_all_users",
+            "/api/select2_user",
+            API_all_users_view,
             "json",
         )
     )
