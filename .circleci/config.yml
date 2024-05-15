@@ -2,7 +2,7 @@ version: 2
 jobs:
   build_master: &build-template
     docker:
-      - image: mrbotcr/climmob_base
+      - image: mrbotcr/climmob_base:20240105
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASS
@@ -17,10 +17,6 @@ jobs:
     working_directory: ~/work
     steps:
       - checkout
-      - run: | # We will just build master-2.0 branch
-          if [ $CIRCLE_BRANCH != 'master' ]; then
-            exit 1
-          fi
       - restore_cache:
           key: requirements-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
       - run:
@@ -87,7 +83,7 @@ jobs:
 
   build_develop: &build-template
     docker:
-      - image: mrbotcr/climmob_base
+      - image: mrbotcr/climmob_base:20240105
         auth:
           username: $DOCKERHUB_USER
           password: $DOCKERHUB_PASS
@@ -102,10 +98,6 @@ jobs:
     working_directory: ~/work
     steps:
       - checkout
-      - run: | # We will just build master-2.0 branch
-          if [ $CIRCLE_BRANCH != 'master' ]; then
-            exit 1
-          fi
       - restore_cache:
           key: requirements-{{ .Branch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "requirements.txt" }}
       - run:
