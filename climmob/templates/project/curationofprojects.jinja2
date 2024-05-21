@@ -49,6 +49,25 @@
                                 </div>
                             {% endfor %}
                         {% endif %}
+
+                        <p>1. {{ _("Read about the following types of projects that have been defined for ClimMob") }}:</p>
+                        <table class="footable table table-bordered">
+                            <thead>
+                                <th>{{ _("Type") }}</th>
+                                <th>{{ _("Description") }}</th>
+                            </thead>
+                            <tbody>
+                                {% for type in listOfProjectTypes %}
+                                    <tr>
+                                        <td>{{ type.prjtype_name }}</td>
+                                        <td>{{ type.prjtype_description }}.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <p>2. {{ _("Use the following table to help the ClimMob team know the type that each of your projects has") }}:</p>
+
                         <table class="footable table table-bordered ">
                             <thead>
                                 <tr>

@@ -9,6 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import String, Integer
 from sqlalchemy.sql import table, column
+from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
 revision = "7e160694b2f9"
@@ -23,7 +24,11 @@ def upgrade():
         "project_status",
         sa.Column("prjstatus_id", sa.Integer(), autoincrement=False, nullable=False),
         sa.Column("prjstatus_name", sa.Unicode(length=120), nullable=False),
-        sa.Column("prjstatus_description", sa.Unicode(length=120), nullable=True),
+        sa.Column(
+            "prjstatus_description",
+            mysql.MEDIUMTEXT(collation="utf8mb4_unicode_ci"),
+            nullable=True,
+        ),
         sa.Column("prjstatus_lang", sa.Unicode(length=5), nullable=False),
         sa.ForeignKeyConstraint(
             ["prjstatus_lang"],
@@ -36,7 +41,11 @@ def upgrade():
         "project_type",
         sa.Column("prjtype_id", sa.Integer(), autoincrement=False, nullable=False),
         sa.Column("prjtype_name", sa.Unicode(length=120), nullable=False),
-        sa.Column("prjtype_description", sa.Unicode(length=120), nullable=True),
+        sa.Column(
+            "prjtype_description",
+            mysql.MEDIUMTEXT(collation="utf8mb4_unicode_ci"),
+            nullable=True,
+        ),
         sa.Column("prjtype_lang", sa.Unicode(length=5), nullable=False),
         sa.ForeignKeyConstraint(
             ["prjtype_lang"],
@@ -50,7 +59,11 @@ def upgrade():
         sa.Column("prjstatus_id", sa.Integer(), nullable=False),
         sa.Column("lang_code", sa.Unicode(length=5), nullable=False),
         sa.Column("prjstatus_name", sa.Unicode(length=120), nullable=False),
-        sa.Column("prjstatus_description", sa.Unicode(length=120), nullable=True),
+        sa.Column(
+            "prjstatus_description",
+            mysql.MEDIUMTEXT(collation="utf8mb4_unicode_ci"),
+            nullable=True,
+        ),
         sa.ForeignKeyConstraint(
             ["lang_code"],
             ["i18n.lang_code"],
@@ -72,7 +85,11 @@ def upgrade():
         sa.Column("prjtype_id", sa.Integer(), nullable=False),
         sa.Column("lang_code", sa.Unicode(length=5), nullable=False),
         sa.Column("prjtype_name", sa.Unicode(length=120), nullable=False),
-        sa.Column("prjtype_description", sa.Unicode(length=120), nullable=True),
+        sa.Column(
+            "prjtype_description",
+            mysql.MEDIUMTEXT(collation="utf8mb4_unicode_ci"),
+            nullable=True,
+        ),
         sa.ForeignKeyConstraint(
             ["lang_code"],
             ["i18n.lang_code"],
@@ -134,19 +151,19 @@ def upgrade():
         {
             "prjtype_id": 0,
             "prjtype_name": "Undefined",
-            "prjtype_description": "",
+            "prjtype_description": "The project does not have any type configured",
             "prjtype_lang": "en",
         },
         {
             "prjtype_id": 1,
             "prjtype_name": "Real",
-            "prjtype_description": "",
+            "prjtype_description": "The project contains real information from participants who have been trained on the Tricot approach and who have conducted their field trial and are using real technology options",
             "prjtype_lang": "en",
         },
         {
             "prjtype_id": 2,
-            "prjtype_name": "Testing",
-            "prjtype_description": "",
+            "prjtype_name": "Training",
+            "prjtype_description": "This project was only used to explain the use of the ClimMob platform and was created as an example",
             "prjtype_lang": "en",
         },
     ]

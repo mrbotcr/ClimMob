@@ -1161,7 +1161,9 @@ class ProjectType(Base):
 
     prjtype_id = Column(Integer, primary_key=True, autoincrement=False)
     prjtype_name = Column(Unicode(120), nullable=False)
-    prjtype_description = Column(Unicode(120), nullable=True)
+    prjtype_description = Column(
+        MEDIUMTEXT(collation="utf8mb4_unicode_ci"), nullable=True
+    )
     prjtype_lang = Column(ForeignKey("i18n.lang_code"), nullable=False)
 
     i18n = relationship("I18n")
@@ -1179,7 +1181,9 @@ class I18nProjectType(Base):
         nullable=False,
     )
     prjtype_name = Column(Unicode(120), nullable=False)
-    prjtype_description = Column(Unicode(120), nullable=True)
+    prjtype_description = Column(
+        MEDIUMTEXT(collation="utf8mb4_unicode_ci"), nullable=True
+    )
 
     i18n = relationship("I18n")
     ProjectType = relationship("ProjectType")
@@ -1190,7 +1194,9 @@ class ProjectStatus(Base):
 
     prjstatus_id = Column(Integer, primary_key=True, autoincrement=False)
     prjstatus_name = Column(Unicode(120), nullable=False)
-    prjstatus_description = Column(Unicode(120), nullable=True)
+    prjstatus_description = Column(
+        MEDIUMTEXT(collation="utf8mb4_unicode_ci"), nullable=True
+    )
     prjstatus_lang = Column(ForeignKey("i18n.lang_code"), nullable=False)
 
     i18n = relationship("I18n")
@@ -1208,7 +1214,9 @@ class I18nProjectStatus(Base):
         nullable=False,
     )
     prjstatus_name = Column(Unicode(120), nullable=False)
-    prjstatus_description = Column(Unicode(120), nullable=True)
+    prjstatus_description = Column(
+        MEDIUMTEXT(collation="utf8mb4_unicode_ci"), nullable=True
+    )
 
     i18n = relationship("I18n")
     ProjectStatus = relationship("ProjectStatus")
